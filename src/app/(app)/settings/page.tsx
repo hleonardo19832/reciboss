@@ -1,0 +1,94 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Loader2, CheckCircle } from 'lucide-react'
+
+export default function SettingsPage() {
+  const [loading, setLoading] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [form, setForm] = useState({
+    full_name: '', company_name: '', company_document: '',
+    company_address: '', company_phone: '', company_email: '',
+  })
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
+          if (data) setForm({
+            full_name: data.full_name || '', company_name: data.company_name || '',
+            company_document: data.company_document || '', company_address: data.company_address || '',
+            company_phone: data.company_phone || '', company_email: data.company_email || '',
+          })
+        })
+      }
+    })
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('profiles').upsert({ id: user.id, ...form })
+    setLoading(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
+  }
+
+  const inputClass = "w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-brand-500 transition-colors"
+  const labelClass = "block text-slate-400 text-xs font-medium mb-1.5"
+
+  return (
+    <div className="animate-fade-in max-w-2xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">Configurações</h1>
+        <p className="text-slate-400 text-sm mt-1">Configure os dados que aparecerão nos recibos</p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
+          <h2 className="text-white font-semibold mb-4">Dados Pessoais</h2>
+          <div>
+            <label className={labelClass}>Seu nome</label>
+            <input type="text" value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} placeholder="João Silva" className={inputClass} />
+          </div>
+        </div>
+        <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
+          <h2 className="text-white font-semibold mb-4">Dados da Empresa</h2>
+          <div className="space-y-4">
+            <div>
+              <label className={labelClass}>Nome da empresa</label>
+              <input type="text" value={form.company_name} onChange={e => setForm(p => ({ ...p, company_name: e.target.value }))} placeholder="Minha Empresa Ltda." className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>CNPJ / CPF</label>
+              <input type="text" value={form.company_document} onChange={e => setForm(p => ({ ...p, company_document: e.target.value }))} placeholder="12.345.678/0001-90" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Endereço</label>
+              <input type="text" value={form.company_address} onChange={e => setForm(p => ({ ...p, company_address: e.target.value }))} placeholder="Rua das Flores, 123 - Cidade/UF" className={inputClass} />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Telefone</label>
+                <input type="tel" value={form.company_phone} onChange={e => setForm(p => ({ ...p, company_phone: e.target.value }))} placeholder="(41) 3333-3333" className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Email</label>
+                <input type="email" value={form.company_email} onChange={e => setForm(p => ({ ...p, company_email: e.target.value }))} placeholder="contato@empresa.com" className={inputClass} />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="submit" disabled={loading} className="w-full bg-brand-500 hover:bg-brand-400 disabled:opacity-60 text-white py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2">
+          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+          {saved && <CheckCircle className="w-4 h-4" />}
+          {loading ? 'Salvando...' : saved ? 'Salvo!' : 'Salvar configurações'}
+        </button>
+      </form>
+    </div>
+  )
+}
