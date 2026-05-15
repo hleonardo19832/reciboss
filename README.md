@@ -9,7 +9,7 @@ Aplicação completa para geração de recibos profissionais com autenticação 
 - **Deploy**: Vercel
 - **PDF**: html2canvas + jsPDF
 
----
+--- 
 
 ## 📋 PASSO A PASSO PARA DEPLOY
 
