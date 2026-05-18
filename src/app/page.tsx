@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import {
   FileText, CheckCircle, Download, Shield, Zap, Users, Star,
-  ArrowRight, Star, ChevronRight, Menu, X
+  ArrowRight, ChevronRight, Menu, X
 } from 'lucide-react'
 
 export default function HomePage() {
