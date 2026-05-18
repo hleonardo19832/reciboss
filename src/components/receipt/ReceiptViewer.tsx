@@ -3,23 +3,57 @@
 import { useState } from 'react'
 import { Receipt, Profile } from '@/lib/types'
 import { formatCurrency, formatDate, STATUS_LABELS } from '@/lib/utils'
-import { Download, Printer, CheckCircle, Clock, XCircle, Building2, User } from 'lucide-react'
+import { Download, Printer, CheckCircle, Clock, XCircle, Building2, Mail, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   receipt: Receipt & { clients?: any }
   profile: Profile | null
 }
 
+// ─── Themes ───────────────────────────────────────────────
+const THEMES = {
+  classic: {
+    label: 'Clássico',
+    header: 'bg-slate-900',
+    accent: '#22c55e',
+    accentClass: 'border-slate-900',
+  },
+  ocean: {
+    label: 'Ocean',
+    header: 'bg-blue-900',
+    accent: '#3b82f6',
+    accentClass: 'border-blue-900',
+  },
+  violet: {
+    label: 'Violeta',
+    header: 'bg-violet-900',
+    accent: '#8b5cf6',
+    accentClass: 'border-violet-900',
+  },
+  earth: {
+    label: 'Terra',
+    header: 'bg-amber-900',
+    accent: '#f59e0b',
+    accentClass: 'border-amber-900',
+  },
+}
+
+type ThemeKey = keyof typeof THEMES
+
 export default function ReceiptViewer({ receipt, profile }: Props) {
   const [downloading, setDownloading] = useState(false)
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
+  const [theme, setTheme] = useState<ThemeKey>((profile as any)?.receipt_theme || 'classic')
   const status = STATUS_LABELS[receipt.status]
+  const t = THEMES[theme]
 
   const handleDownload = async () => {
     setDownloading(true)
     try {
       const html2canvas = (await import('html2canvas')).default
       const jsPDF = (await import('jspdf')).default
-
       const element = document.getElementById('receipt-document')!
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -27,12 +61,10 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
         logging: false,
         backgroundColor: '#ffffff',
       })
-
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF('p', 'mm', 'a4')
       const pdfWidth = pdf.internal.pageSize.getWidth()
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
       pdf.save(`${receipt.receipt_number}.pdf`)
     } catch (e) {
@@ -43,36 +75,117 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
 
   const handlePrint = () => window.print()
 
+  const handleSendEmail = async () => {
+    const clientEmail = receipt.clients?.email
+    if (!clientEmail) {
+      alert('Este cliente não tem email cadastrado. Adicione o email do cliente para usar esta função.')
+      return
+    }
+    setSendingEmail(true)
+    try {
+      const res = await fetch('/api/email/receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receipt_id: receipt.id }),
+      })
+      if (res.ok) {
+        setEmailSent(true)
+        setTimeout(() => setEmailSent(false), 3000)
+      } else {
+        alert('Erro ao enviar email. Verifique as configurações.')
+      }
+    } catch {
+      alert('Erro de conexão ao enviar email.')
+    }
+    setSendingEmail(false)
+  }
+
+  const saveTheme = async (newTheme: ThemeKey) => {
+    setTheme(newTheme)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('profiles').update({ receipt_theme: newTheme }).eq('id', user.id)
+    }
+  }
+
+  const logoUrl = (profile as any)?.company_logo_url
+  const hasClientEmail = !!receipt.clients?.email
+
   return (
     <div className="space-y-4">
       {/* Action buttons */}
-      <div className="flex items-center gap-3 justify-end no-print">
-        <button
-          onClick={handlePrint}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border border-white/10"
-        >
-          <Printer className="w-4 h-4" />
-          Imprimir
-        </button>
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className="flex items-center gap-2 bg-brand-500 hover:bg-brand-400 disabled:opacity-60 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-brand-500/25"
-        >
-          <Download className="w-4 h-4" />
-          {downloading ? 'Gerando PDF...' : 'Baixar PDF'}
-        </button>
+      <div className="flex items-center gap-3 justify-between no-print flex-wrap">
+        {/* Theme selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-slate-400 text-xs">Tema:</span>
+          <div className="flex gap-1.5">
+            {(Object.entries(THEMES) as [ThemeKey, typeof THEMES[ThemeKey]][]).map(([key, t]) => (
+              <button
+                key={key}
+                onClick={() => saveTheme(key)}
+                title={t.label}
+                className={`w-6 h-6 rounded-full border-2 transition-all ${
+                  theme === key ? 'border-white scale-110' : 'border-transparent opacity-60'
+                }`}
+                style={{ backgroundColor: t.accent }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Send email button */}
+          <button
+            onClick={handleSendEmail}
+            disabled={sendingEmail || !hasClientEmail}
+            title={hasClientEmail ? 'Enviar por email para o cliente' : 'Cliente sem email cadastrado'}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border border-white/10"
+          >
+            {sendingEmail
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Mail className="w-4 h-4" />}
+            {emailSent ? 'Enviado!' : 'Enviar por email'}
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border border-white/10"
+          >
+            <Printer className="w-4 h-4" />
+            Imprimir
+          </button>
+
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center gap-2 bg-brand-500 hover:bg-brand-400 disabled:opacity-60 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-brand-500/25"
+          >
+            <Download className="w-4 h-4" />
+            {downloading ? 'Gerando PDF...' : 'Baixar PDF'}
+          </button>
+        </div>
       </div>
 
       {/* Receipt document */}
       <div className="bg-white rounded-2xl shadow-2xl overflow-hidden" id="receipt-document">
-        {/* Header */}
-        <div className="bg-slate-900 px-10 py-8">
+        {/* Header — themed */}
+        <div className={`${t.header} px-10 py-8`}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-brand-500 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-7 h-7 text-white" />
-              </div>
+              {/* Logo or icon */}
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="w-14 h-14 rounded-2xl object-cover bg-white"
+                  crossOrigin="anonymous"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.accent }}>
+                  <Building2 className="w-7 h-7 text-white" />
+                </div>
+              )}
               <div>
                 <h2 className="text-white font-bold text-xl font-display">
                   {profile?.company_name || profile?.full_name || 'Minha Empresa'}
@@ -114,7 +227,6 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
 
         {/* Body */}
         <div className="px-10 py-8">
-          {/* Parties */}
           <div className="grid grid-cols-2 gap-8 mb-8">
             <div>
               <p className="text-slate-400 text-xs uppercase tracking-widest font-medium mb-2">Emissor</p>
@@ -145,7 +257,6 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
             </div>
           )}
 
-          {/* Items table */}
           <div className="mb-6">
             <table className="w-full">
               <thead>
@@ -169,7 +280,6 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
             </table>
           </div>
 
-          {/* Totals */}
           <div className="flex justify-end">
             <div className="w-64 space-y-2">
               <div className="flex justify-between text-sm">
@@ -194,7 +304,6 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
             </div>
           </div>
 
-          {/* Notes */}
           {receipt.notes && (
             <div className="mt-8 p-4 bg-slate-50 rounded-xl border border-slate-200">
               <p className="text-slate-500 text-xs uppercase tracking-wider font-medium mb-1">Observações</p>
@@ -202,7 +311,6 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
             </div>
           )}
 
-          {/* Dates */}
           <div className="mt-8 grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
             <div>
               <p className="text-slate-400 text-xs">Data de emissão</p>

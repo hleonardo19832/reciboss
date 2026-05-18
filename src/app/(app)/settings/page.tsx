@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, CheckCircle } from 'lucide-react'
+import { Loader2, CheckCircle, Upload, X, ImageIcon } from 'lucide-react'
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     full_name: '', company_name: '', company_document: '',
     company_address: '', company_phone: '', company_email: '',
@@ -17,15 +20,64 @@ export default function SettingsPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
-          if (data) setForm({
-            full_name: data.full_name || '', company_name: data.company_name || '',
-            company_document: data.company_document || '', company_address: data.company_address || '',
-            company_phone: data.company_phone || '', company_email: data.company_email || '',
-          })
+          if (data) {
+            setForm({
+              full_name: data.full_name || '',
+              company_name: data.company_name || '',
+              company_document: data.company_document || '',
+              company_address: data.company_address || '',
+              company_phone: data.company_phone || '',
+              company_email: data.company_email || '',
+            })
+            setLogoUrl(data.company_logo_url || null)
+          }
         })
       }
     })
   }, [])
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('A imagem deve ter no máximo 2MB.')
+      return
+    }
+
+    setUploadingLogo(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const ext = file.name.split('.').pop()
+    const path = `logos/${user.id}.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(path, file, { upsert: true })
+
+    if (uploadError) {
+      alert('Erro ao fazer upload. Verifique se o bucket "logos" foi criado no Supabase Storage.')
+      setUploadingLogo(false)
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
+
+    await supabase.from('profiles').update({ company_logo_url: publicUrl }).eq('id', user.id)
+
+    setLogoUrl(publicUrl)
+    setUploadingLogo(false)
+  }
+
+  const handleRemoveLogo = async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('profiles').update({ company_logo_url: null }).eq('id', user.id)
+    setLogoUrl(null)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,6 +100,52 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-white">Configurações</h1>
         <p className="text-slate-400 text-sm mt-1">Configure os dados que aparecerão nos recibos</p>
       </div>
+
+      {/* Logo upload */}
+      <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 mb-6">
+        <h2 className="text-white font-semibold mb-1">Logo da empresa</h2>
+        <p className="text-slate-400 text-xs mb-4">Aparecerá no cabeçalho dos recibos. Máximo 2MB.</p>
+
+        <div className="flex items-center gap-4">
+          {logoUrl ? (
+            <div className="relative">
+              <img src={logoUrl} alt="Logo" className="w-20 h-20 rounded-xl object-cover bg-slate-800 border border-white/10" />
+              <button
+                onClick={handleRemoveLogo}
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-400 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-xl bg-slate-800 border border-white/10 border-dashed flex items-center justify-center">
+              <ImageIcon className="w-8 h-8 text-slate-600" />
+            </div>
+          )}
+
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              onChange={handleLogoUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingLogo}
+              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border border-white/10"
+            >
+              {uploadingLogo
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <Upload className="w-4 h-4" />}
+              {uploadingLogo ? 'Enviando...' : logoUrl ? 'Trocar logo' : 'Fazer upload'}
+            </button>
+            <p className="text-slate-500 text-xs mt-2">PNG, JPG, SVG ou WEBP</p>
+          </div>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
           <h2 className="text-white font-semibold mb-4">Dados Pessoais</h2>
@@ -56,6 +154,7 @@ export default function SettingsPage() {
             <input type="text" value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} placeholder="João Silva" className={inputClass} />
           </div>
         </div>
+
         <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
           <h2 className="text-white font-semibold mb-4">Dados da Empresa</h2>
           <div className="space-y-4">
@@ -83,6 +182,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
         <button type="submit" disabled={loading} className="w-full bg-brand-500 hover:bg-brand-400 disabled:opacity-60 text-white py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2">
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           {saved && <CheckCircle className="w-4 h-4" />}
