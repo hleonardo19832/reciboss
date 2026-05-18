@@ -176,7 +176,7 @@ function BillingContent() {
                 <h3 className="text-white font-bold text-lg">{plan.name}</h3>
                 <div className="flex items-baseline gap-1 mt-1">
                   {plan.price === 0 ? (
-                    <span className="text-2xl font-bold text-white">Grátis</span>
+                    <span className="text-3xl font-bold text-white">Grátis</span>
                   ) : (
                     <>
                       <span className="text-slate-400 text-sm">R$</span>
