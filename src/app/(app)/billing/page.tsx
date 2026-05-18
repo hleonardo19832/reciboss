@@ -79,11 +79,18 @@ function BillingContent() {
         }
       }
 
+const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
       const res = await fetch('/api/asaas/subscribe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` }),
+        },
         body: JSON.stringify(body),
       })
+
 
       const data = await res.json()
 
