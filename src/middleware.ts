@@ -26,26 +26,7 @@ export async function middleware(request: NextRequest) {
   )
 
   // CRITICAL: refresh session on every request
-  const { data: { user } } = await supabase.auth.getUser()
-
-  const pathname = request.nextUrl.pathname
-
-  // Protege as rotas privadas (qualquer rota do painel do SaaS)
-  const isProtectedRoute = ['/dashboard', '/receipts', '/clients', '/settings', '/billing'].some(route => pathname.startsWith(route))
-
-  // Se for rota protegida e o usuário NÃO estiver logado -> vai pro login
-  if (isProtectedRoute && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
-  }
-
-  // Se o usuário já ESTIVER logado e tentar ir pro login/cadastro -> vai pro dashboard
-  if (user && pathname.startsWith('/auth')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
-  }
+  await supabase.auth.getUser()
 
   return supabaseResponse
 }
