@@ -84,7 +84,6 @@ export function getSubscriptionStatus(sub: Subscription): {
   if (sub.status === 'active') {
     const plan = PLANS[sub.plan_id as keyof typeof PLANS]
     if (plan?.receipts_limit !== null) {
-      // Reset monthly counter if needed
       const resetAt = new Date(sub.month_reset_at)
       if (now >= resetAt) {
         return { canCreate: true, isTrialing: false, isExpired: false, daysLeft: null, message: `Plano ${plan.name} ativo` }
