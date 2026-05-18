@@ -6,7 +6,19 @@ import { PLANS } from '@/lib/subscription'
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+
+    // Try cookie-based auth first
+    let { data: { user } } = await supabase.auth.getUser()
+
+    // Fallback: read token from Authorization header
+    if (!user) {
+      const authHeader = request.headers.get('Authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7)
+        const { data } = await supabase.auth.getUser(token)
+        user = data.user
+      }
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
