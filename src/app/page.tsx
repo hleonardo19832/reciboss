@@ -281,7 +281,7 @@ export default function HomePage() {
                 <h3 className="text-white font-bold text-xl mb-1">Básico</h3>
                 <div className="flex items-baseline gap-1 mt-2">
                   <span className="text-slate-400 text-sm">R$</span>
-                  <span className="text-4xl font-bold text-white font-display">29</span>
+                  <span className="text-3xl font-bold text-white">29</span>
                   <span className="text-slate-400 text-sm">/mês</span>
                 </div>
                 <p className="text-slate-400 text-sm mt-1">50 recibos por mês</p>
@@ -310,7 +310,7 @@ export default function HomePage() {
                 <h3 className="text-white font-bold text-xl mb-1">Pro</h3>
                 <div className="flex items-baseline gap-1 mt-2">
                   <span className="text-slate-400 text-sm">R$</span>
-                  <span className="text-4xl font-bold text-white font-display">59</span>
+                  <span className="text-3xl font-bold text-white">59</span>
                   <span className="text-slate-400 text-sm">/mês</span>
                 </div>
                 <p className="text-slate-400 text-sm mt-1">200 recibos por mês</p>
@@ -336,7 +336,7 @@ export default function HomePage() {
                 <h3 className="text-white font-bold text-xl mb-1">Empresarial</h3>
                 <div className="flex items-baseline gap-1 mt-2">
                   <span className="text-slate-400 text-sm">R$</span>
-                  <span className="text-4xl font-bold text-white font-display">99</span>
+                  <span className="text-3xl font-bold text-white">99</span>
                   <span className="text-slate-400 text-sm">/mês</span>
                 </div>
                 <p className="text-slate-400 text-sm mt-1">Recibos ilimitados</p>
