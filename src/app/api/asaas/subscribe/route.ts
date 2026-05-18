@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createOrGetCustomer, createSubscription } from '@/lib/asaas'
-
-const PLANS: Record<string, { name: string; value: number }> = {
-  basic:      { name: 'Básico',      value: 29.00 },
-  pro:        { name: 'Pro',         value: 59.00 },
-  enterprise: { name: 'Empresarial', value: 99.00 },
-}
+import { PLANS } from '@/lib/subscription'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { plan_id, billing_type, credit_card, credit_card_holder_info } = body
 
-    const plan = PLANS[plan_id]
+    const plan = PLANS[plan_id as keyof typeof PLANS]
     if (!plan) {
       return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
     }
@@ -46,7 +41,7 @@ export async function POST(request: NextRequest) {
       customerId: customer.id,
       planId: plan_id,
       planName: plan.name,
-      value: plan.value,
+      value: plan.price,
       billingType: billing_type || 'PIX',
       externalReference: `${user.id}|${plan_id}`,
       creditCard: credit_card,
@@ -59,7 +54,7 @@ export async function POST(request: NextRequest) {
       .upsert({
         user_id: user.id,
         plan_id,
-        status: billing_type === 'CREDIT_CARD' ? 'active' : 'trialing',
+        status: 'pending',
         mp_subscription_id: subscription.id,
         mp_payer_email: user.email,
       }, { onConflict: 'user_id' })
@@ -67,10 +62,13 @@ export async function POST(request: NextRequest) {
     // Get payment info for PIX/Boleto
     let paymentInfo = null
     if (billing_type === 'PIX' || billing_type === 'BOLETO') {
-      // Give Asaas a moment to generate the payment
-      await new Promise(r => setTimeout(r, 1500))
       const { getSubscriptionPaymentLink } = await import('@/lib/asaas')
-      paymentInfo = await getSubscriptionPaymentLink(subscription.id)
+      // Retry loop to give Asaas time to generate the payment
+      for (let i = 0; i < 6; i++) {
+        await new Promise(r => setTimeout(r, 1000))
+        paymentInfo = await getSubscriptionPaymentLink(subscription.id)
+        if (paymentInfo) break
+      }
     }
 
     return NextResponse.json({
