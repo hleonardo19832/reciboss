@@ -13,30 +13,16 @@ interface Props {
 
 // ─── Themes ───────────────────────────────────────────────
 const THEMES = {
-  classic: {
-    label: 'Clássico',
-    header: 'bg-slate-900',
-    accent: '#22c55e',
-    accentClass: 'border-slate-900',
-  },
-  ocean: {
-    label: 'Ocean',
-    header: 'bg-blue-900',
-    accent: '#3b82f6',
-    accentClass: 'border-blue-900',
-  },
-  violet: {
-    label: 'Violeta',
-    header: 'bg-violet-900',
-    accent: '#8b5cf6',
-    accentClass: 'border-violet-900',
-  },
-  earth: {
-    label: 'Terra',
-    header: 'bg-amber-900',
-    accent: '#f59e0b',
-    accentClass: 'border-amber-900',
-  },
+  classic:  { label: 'Clássico',  header: 'bg-slate-900',   accent: '#22c55e' },
+  ocean:    { label: 'Ocean',     header: 'bg-blue-900',    accent: '#3b82f6' },
+  violet:   { label: 'Violeta',   header: 'bg-violet-900',  accent: '#8b5cf6' },
+  earth:    { label: 'Terra',     header: 'bg-amber-900',   accent: '#f59e0b' },
+  rose:     { label: 'Rosa',      header: 'bg-rose-900',    accent: '#f43f5e' },
+  cyan:     { label: 'Ciano',     header: 'bg-cyan-900',    accent: '#06b6d4' },
+  indigo:   { label: 'Índigo',    header: 'bg-indigo-900',  accent: '#6366f1' },
+  teal:     { label: 'Teal',      header: 'bg-teal-900',    accent: '#14b8a6' },
+  orange:   { label: 'Laranja',   header: 'bg-orange-900',  accent: '#f97316' },
+  dark:     { label: 'Escuro',    header: 'bg-zinc-950',    accent: '#71717a' },
 }
 
 type ThemeKey = keyof typeof THEMES
@@ -294,7 +280,7 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
               )}
               <div className="border-t-2 border-slate-900 pt-2 flex justify-between items-center">
                 <span className="text-slate-900 font-bold text-base">TOTAL</span>
-                <span className="text-slate-900 font-bold text-2xl font-display">
+                <span style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.02em' }} className="text-slate-900 font-bold text-2xl">
                   {formatCurrency(Number(receipt.total))}
                 </span>
               </div>

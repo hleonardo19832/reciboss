@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Client } from '@/lib/types'
 import { generateReceiptNumber, PAYMENT_METHODS, formatCurrency } from '@/lib/utils'
-import { Plus, Trash2, Loader2, ArrowLeft } from 'lucide-react'
+import { Plus, Trash2, Loader2, ArrowLeft, Package, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { getSubscriptionStatus } from '@/lib/subscription'
 import { v4 as uuidv4 } from 'uuid'
 
 interface Item {
   id: string
+  type: 'service' | 'product'
   description: string
   quantity: number
   unit_price: number
@@ -41,8 +42,11 @@ export default function NewReceiptForm() {
   })
 
   const [items, setItems] = useState<Item[]>([
-    { id: uuidv4(), description: '', quantity: 1, unit_price: 0, total: 0 }
+    { id: uuidv4(), type: 'service', description: '', quantity: 1, unit_price: 0, total: 0 }
   ])
+
+  // Track raw string values for price inputs to avoid leading zero issue
+  const [priceInputs, setPriceInputs] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const supabase = createClient()
@@ -51,7 +55,6 @@ export default function NewReceiptForm() {
         supabase.from('clients').select('*').eq('user_id', user.id).order('name').then(({ data }) => {
           setClients(data || [])
         })
-        // Check subscription
         supabase.from('subscriptions').select('*, plans(*)').eq('user_id', user.id).single().then(({ data: sub }) => {
           if (sub) {
             const status = getSubscriptionStatus(sub as any)
@@ -74,7 +77,26 @@ export default function NewReceiptForm() {
     }))
   }
 
-  const addItem = () => setItems(prev => [...prev, { id: uuidv4(), description: '', quantity: 1, unit_price: 0, total: 0 }])
+  // Handle price input — clears leading zero on focus, updates on change
+  const handlePriceChange = (id: string, raw: string) => {
+    setPriceInputs(prev => ({ ...prev, [id]: raw }))
+    const num = parseFloat(raw) || 0
+    updateItem(id, 'unit_price', num)
+  }
+
+  const handlePriceFocus = (id: string, currentValue: number) => {
+    // Show empty string when value is 0
+    setPriceInputs(prev => ({ ...prev, [id]: currentValue === 0 ? '' : String(currentValue) }))
+  }
+
+  const handlePriceBlur = (id: string, currentValue: number) => {
+    setPriceInputs(prev => ({ ...prev, [id]: '' }))
+    updateItem(id, 'unit_price', currentValue)
+  }
+
+  const addItem = () => setItems(prev => [...prev, {
+    id: uuidv4(), type: 'service', description: '', quantity: 1, unit_price: 0, total: 0
+  }])
   const removeItem = (id: string) => { if (items.length > 1) setItems(prev => prev.filter(i => i.id !== id)) }
 
   const subtotal = items.reduce((acc, i) => acc + i.total, 0)
@@ -128,16 +150,18 @@ export default function NewReceiptForm() {
       </div>
 
       {!canCreate && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center mb-6">
           <div className="text-red-400 font-semibold mb-2">⚠️ {blockMessage}</div>
           <Link href="/billing" className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-400 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all mt-3">
             Ver planos disponíveis
           </Link>
         </div>
       )}
+
       <form onSubmit={handleSubmit} className={`space-y-6 ${!canCreate ? 'opacity-50 pointer-events-none' : ''}`}>
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+
             {/* Basic info */}
             <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
               <h2 className="text-white font-semibold mb-4">Informações do Recibo</h2>
@@ -192,28 +216,115 @@ export default function NewReceiptForm() {
               <h2 className="text-white font-semibold mb-4">Itens / Serviços</h2>
               <div className="space-y-3">
                 {items.map((item, i) => (
-                  <div key={item.id} className="grid grid-cols-12 gap-2 items-end">
-                    <div className="col-span-5">
-                      {i === 0 && <label className={labelClass}>Descrição</label>}
-                      <input type="text" value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} placeholder="Serviço ou produto" required className={inputClass} />
+                  <div key={item.id} className="space-y-2">
+                    {/* Type selector + description row */}
+                    <div className="grid grid-cols-12 gap-2 items-end">
+                      {/* Type toggle */}
+                      <div className="col-span-2">
+                        {i === 0 && <label className={labelClass}>Tipo</label>}
+                        <div className="flex rounded-xl overflow-hidden border border-white/10">
+                          <button
+                            type="button"
+                            onClick={() => updateItem(item.id, 'type', 'service')}
+                            title="Serviço"
+                            className={`flex-1 flex items-center justify-center py-2.5 text-xs font-medium transition-colors ${
+                              item.type === 'service'
+                                ? 'bg-brand-500 text-white'
+                                : 'bg-slate-900 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <Wrench className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateItem(item.id, 'type', 'product')}
+                            title="Produto"
+                            className={`flex-1 flex items-center justify-center py-2.5 text-xs font-medium transition-colors ${
+                              item.type === 'product'
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-slate-900 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <Package className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="col-span-10">
+                        {i === 0 && <label className={labelClass}>Descrição</label>}
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={e => updateItem(item.id, 'description', e.target.value)}
+                          placeholder={item.type === 'service' ? 'Ex: Consultoria mensal' : 'Ex: Notebook Dell'}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      {i === 0 && <label className={labelClass}>Qtd.</label>}
-                      <input type="number" value={item.quantity} onChange={e => updateItem(item.id, 'quantity', Number(e.target.value))} min="0.01" step="0.01" required className={inputClass} />
+
+                    {/* Qty + price + total + delete row */}
+                    <div className="grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-2">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          item.type === 'service'
+                            ? 'bg-brand-500/15 text-brand-400'
+                            : 'bg-blue-500/15 text-blue-400'
+                        }`}>
+                          {item.type === 'service' ? 'Serviço' : 'Produto'}
+                        </span>
+                      </div>
+                      <div className="col-span-3">
+                        {i === 0 && <div className="h-[18px]" />}
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={e => updateItem(item.id, 'quantity', Number(e.target.value))}
+                          min="0.01"
+                          step="0.01"
+                          placeholder="Qtd."
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        {i === 0 && <div className="h-[18px]" />}
+                        <input
+                          type="number"
+                          // Show raw input string when focused, else show the number (0 shows as empty)
+                          value={priceInputs[item.id] !== undefined ? priceInputs[item.id] : (item.unit_price === 0 ? '' : item.unit_price)}
+                          onChange={e => handlePriceChange(item.id, e.target.value)}
+                          onFocus={() => handlePriceFocus(item.id, item.unit_price)}
+                          onBlur={() => handlePriceBlur(item.id, item.unit_price)}
+                          min="0"
+                          step="0.01"
+                          placeholder="Preço unit."
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        {i === 0 && <div className="h-[18px]" />}
+                        <div className="bg-slate-800 border border-white/5 rounded-xl px-3 py-2.5 text-slate-300 text-sm font-medium text-right">
+                          {formatCurrency(item.total)}
+                        </div>
+                      </div>
+                      <div className="col-span-1 flex justify-center">
+                        {i === 0 && <div className="h-[18px]" />}
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          disabled={items.length === 1}
+                          className="text-slate-600 hover:text-red-400 disabled:opacity-30 transition-colors p-1.5"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      {i === 0 && <label className={labelClass}>Preço unit.</label>}
-                      <input type="number" value={item.unit_price} onChange={e => updateItem(item.id, 'unit_price', Number(e.target.value))} min="0" step="0.01" required className={inputClass} />
-                    </div>
-                    <div className="col-span-2">
-                      {i === 0 && <label className={labelClass}>Total</label>}
-                      <div className="bg-slate-800 border border-white/5 rounded-xl px-3 py-2.5 text-slate-300 text-sm font-medium text-right">{formatCurrency(item.total)}</div>
-                    </div>
-                    <div className="col-span-1 pb-0.5 flex justify-center">
-                      <button type="button" onClick={() => removeItem(item.id)} disabled={items.length === 1} className="text-slate-600 hover:text-red-400 disabled:opacity-30 transition-colors p-1.5">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+
+                    {/* Divider between items */}
+                    {i < items.length - 1 && <div className="border-t border-white/5 pt-1" />}
                   </div>
                 ))}
               </div>
