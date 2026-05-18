@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   title: 'ReciboFácil — Gerador de Recibos Profissionais',
   description: 'Crie recibos profissionais em segundos. Gerencie seus clientes e acompanhe seus pagamentos com facilidade.',
   keywords: 'recibo, gerador de recibo, nota de pagamento, recibo online, gestão financeira',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
