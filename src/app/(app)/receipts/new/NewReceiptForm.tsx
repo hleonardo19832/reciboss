@@ -214,124 +214,66 @@ export default function NewReceiptForm() {
             {/* Items */}
             <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
               <h2 className="text-white font-semibold mb-4">Itens / Serviços</h2>
-              <div className="space-y-3">
-                {items.map((item, i) => (
-                  <div key={item.id} className="space-y-2">
-                    {/* Type selector + description row */}
-                    <div className="grid grid-cols-12 gap-2 items-end">
-                      {/* Type toggle */}
-                      <div className="col-span-2">
-                        {i === 0 && <label className={labelClass}>Tipo</label>}
-                        <div className="flex rounded-xl overflow-hidden border border-white/10">
-                          <button
-                            type="button"
-                            onClick={() => updateItem(item.id, 'type', 'service')}
-                            title="Serviço"
-                            className={`flex-1 flex items-center justify-center py-2.5 text-xs font-medium transition-colors ${
-                              item.type === 'service'
-                                ? 'bg-brand-500 text-white'
-                                : 'bg-slate-900 text-slate-400 hover:text-white'
-                            }`}
-                          >
-                            <Wrench className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => updateItem(item.id, 'type', 'product')}
-                            title="Produto"
-                            className={`flex-1 flex items-center justify-center py-2.5 text-xs font-medium transition-colors ${
-                              item.type === 'product'
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-slate-900 text-slate-400 hover:text-white'
-                            }`}
-                          >
-                            <Package className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
 
-                      {/* Description */}
-                      <div className="col-span-10">
-                        {i === 0 && <label className={labelClass}>Descrição</label>}
-                        <input
-                          type="text"
-                          value={item.description}
-                          onChange={e => updateItem(item.id, 'description', e.target.value)}
-                          placeholder={item.type === 'service' ? 'Ex: Consultoria mensal' : 'Ex: Notebook Dell'}
-                          required
-                          className={inputClass}
-                        />
-                      </div>
+              {/* Header */}
+              <div className="grid gap-2 mb-2" style={{gridTemplateColumns: '36px 1fr 72px 100px 100px 32px'}}>
+                <div />
+                <span className={labelClass}>Descrição</span>
+                <span className={labelClass}>Qtd.</span>
+                <span className={labelClass}>Preço unit.</span>
+                <span className={labelClass}>Total</span>
+                <div />
+              </div>
+
+              <div className="space-y-2">
+                {items.map((item) => (
+                  <div key={item.id} className="grid gap-2 items-center" style={{gridTemplateColumns: '36px 1fr 72px 100px 100px 32px'}}>
+
+                    {/* Type toggle */}
+                    <div className="flex flex-col rounded-lg overflow-hidden border border-white/10 h-10">
+                      <button type="button" onClick={() => updateItem(item.id, 'type', 'service')} title="Serviço"
+                        className={`flex-1 flex items-center justify-center transition-colors ${item.type === 'service' ? 'bg-brand-500 text-white' : 'bg-slate-900 text-slate-500 hover:text-white'}`}>
+                        <Wrench className="w-3 h-3" />
+                      </button>
+                      <button type="button" onClick={() => updateItem(item.id, 'type', 'product')} title="Produto"
+                        className={`flex-1 flex items-center justify-center transition-colors ${item.type === 'product' ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-500 hover:text-white'}`}>
+                        <Package className="w-3 h-3" />
+                      </button>
                     </div>
 
-                    {/* Qty + price + total + delete row */}
-                    <div className="flex items-center gap-2">
-                      {/* Type badge */}
-                      <div className="w-16 flex-shrink-0">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
-                          item.type === 'service'
-                            ? 'bg-brand-500/15 text-brand-400'
-                            : 'bg-blue-500/15 text-blue-400'
-                        }`}>
-                          {item.type === 'service' ? 'Serviço' : 'Produto'}
-                        </span>
-                      </div>
-                      {/* Qty */}
-                      <div className="w-20 flex-shrink-0">
-                        {i === 0 && <div className="h-[18px]" />}
-                        <input
-                          type="number"
-                          value={item.quantity}
-                          onChange={e => updateItem(item.id, 'quantity', Number(e.target.value))}
-                          min="0.01"
-                          step="0.01"
-                          placeholder="Qtd."
-                          required
-                          className={inputClass}
-                        />
-                      </div>
-                      {/* Price */}
-                      <div className="flex-1">
-                        {i === 0 && <div className="h-[18px]" />}
-                        <input
-                          type="number"
-                          value={priceInputs[item.id] !== undefined ? priceInputs[item.id] : (item.unit_price === 0 ? '' : item.unit_price)}
-                          onChange={e => handlePriceChange(item.id, e.target.value)}
-                          onFocus={() => handlePriceFocus(item.id, item.unit_price)}
-                          onBlur={() => handlePriceBlur(item.id, item.unit_price)}
-                          min="0"
-                          step="0.01"
-                          placeholder="Preço unit."
-                          required
-                          className={inputClass}
-                        />
-                      </div>
-                      {/* Total — flex-shrink-0 with min-w so it never overflows */}
-                      <div className="flex-shrink-0 min-w-[110px]">
-                        {i === 0 && <div className="h-[18px]" />}
-                        <div className="bg-slate-800 border border-white/5 rounded-xl px-3 py-2.5 text-slate-300 text-sm font-medium text-right whitespace-nowrap">
-                          {formatCurrency(item.total)}
-                        </div>
-                      </div>
-                      {/* Delete */}
-                      <div className="flex-shrink-0">
-                        {i === 0 && <div className="h-[18px]" />}
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.id)}
-                          disabled={items.length === 1}
-                          className="text-slate-600 hover:text-red-400 disabled:opacity-30 transition-colors p-1.5"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                    {/* Description */}
+                    <input type="text" value={item.description}
+                      onChange={e => updateItem(item.id, 'description', e.target.value)}
+                      placeholder={item.type === 'service' ? 'Ex: Consultoria mensal' : 'Ex: Notebook Dell'}
+                      required className={inputClass} />
+
+                    {/* Qty */}
+                    <input type="number" value={item.quantity}
+                      onChange={e => updateItem(item.id, 'quantity', Number(e.target.value))}
+                      min="0.01" step="0.01" placeholder="1" required className={inputClass} />
+
+                    {/* Price */}
+                    <input type="number"
+                      value={priceInputs[item.id] !== undefined ? priceInputs[item.id] : (item.unit_price === 0 ? '' : item.unit_price)}
+                      onChange={e => handlePriceChange(item.id, e.target.value)}
+                      onFocus={() => handlePriceFocus(item.id, item.unit_price)}
+                      onBlur={() => handlePriceBlur(item.id, item.unit_price)}
+                      min="0" step="0.01" placeholder="0,00" required className={inputClass} />
+
+                    {/* Total */}
+                    <div className="bg-slate-800 border border-white/5 rounded-xl px-3 py-2.5 text-slate-300 text-sm font-medium text-right overflow-hidden">
+                      {formatCurrency(item.total)}
                     </div>
 
-                    {/* Divider between items */}
-                    {i < items.length - 1 && <div className="border-t border-white/5 pt-1" />}
+                    {/* Delete */}
+                    <button type="button" onClick={() => removeItem(item.id)} disabled={items.length === 1}
+                      className="flex items-center justify-center text-slate-600 hover:text-red-400 disabled:opacity-30 transition-colors p-1">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>
+
               <button type="button" onClick={addItem} className="mt-4 flex items-center gap-2 text-brand-400 hover:text-brand-300 text-sm transition-colors">
                 <Plus className="w-4 h-4" />
                 Adicionar item
