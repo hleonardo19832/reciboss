@@ -265,9 +265,10 @@ export default function NewReceiptForm() {
                     </div>
 
                     {/* Qty + price + total + delete row */}
-                    <div className="grid grid-cols-12 gap-2 items-center">
-                      <div className="col-span-2">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    <div className="flex items-center gap-2">
+                      {/* Type badge */}
+                      <div className="w-16 flex-shrink-0">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
                           item.type === 'service'
                             ? 'bg-brand-500/15 text-brand-400'
                             : 'bg-blue-500/15 text-blue-400'
@@ -275,7 +276,8 @@ export default function NewReceiptForm() {
                           {item.type === 'service' ? 'Serviço' : 'Produto'}
                         </span>
                       </div>
-                      <div className="col-span-3">
+                      {/* Qty */}
+                      <div className="w-20 flex-shrink-0">
                         {i === 0 && <div className="h-[18px]" />}
                         <input
                           type="number"
@@ -288,11 +290,11 @@ export default function NewReceiptForm() {
                           className={inputClass}
                         />
                       </div>
-                      <div className="col-span-3">
+                      {/* Price */}
+                      <div className="flex-1">
                         {i === 0 && <div className="h-[18px]" />}
                         <input
                           type="number"
-                          // Show raw input string when focused, else show the number (0 shows as empty)
                           value={priceInputs[item.id] !== undefined ? priceInputs[item.id] : (item.unit_price === 0 ? '' : item.unit_price)}
                           onChange={e => handlePriceChange(item.id, e.target.value)}
                           onFocus={() => handlePriceFocus(item.id, item.unit_price)}
@@ -304,13 +306,15 @@ export default function NewReceiptForm() {
                           className={inputClass}
                         />
                       </div>
-                      <div className="col-span-3">
+                      {/* Total — flex-shrink-0 with min-w so it never overflows */}
+                      <div className="flex-shrink-0 min-w-[110px]">
                         {i === 0 && <div className="h-[18px]" />}
-                        <div className="bg-slate-800 border border-white/5 rounded-xl px-3 py-2.5 text-slate-300 text-sm font-medium text-right">
+                        <div className="bg-slate-800 border border-white/5 rounded-xl px-3 py-2.5 text-slate-300 text-sm font-medium text-right whitespace-nowrap">
                           {formatCurrency(item.total)}
                         </div>
                       </div>
-                      <div className="col-span-1 flex justify-center">
+                      {/* Delete */}
+                      <div className="flex-shrink-0">
                         {i === 0 && <div className="h-[18px]" />}
                         <button
                           type="button"
