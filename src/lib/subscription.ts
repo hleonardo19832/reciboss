@@ -11,7 +11,7 @@ export interface Subscription {
   id: string
   user_id: string
   plan_id: string
-  status: 'trialing' | 'active' | 'expired' | 'cancelled'
+  status: 'trialing' | 'active' | 'expired' | 'cancelled' | 'pending'
   trial_ends_at: string
   current_period_start: string | null
   current_period_end: string | null
@@ -96,6 +96,10 @@ export function getSubscriptionStatus(sub: Subscription): {
       return { canCreate: true, isTrialing: false, isExpired: false, daysLeft: null, message: `${remaining} recibo(s) restantes este mês` }
     }
     return { canCreate: true, isTrialing: false, isExpired: false, daysLeft: null, message: `Plano ${plan?.name} ativo` }
+  }
+
+  if (sub.status === 'pending') {
+    return { canCreate: false, isTrialing: false, isExpired: false, daysLeft: null, message: 'Aguardando confirmação de pagamento.' }
   }
 
   if (sub.status === 'expired' || sub.status === 'cancelled') {
