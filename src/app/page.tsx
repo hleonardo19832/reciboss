@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import {
-  FileText, CheckCircle, Download, Shield, Zap, Users,
+  FileText, CheckCircle, Download, Shield, Zap, Users, Star,
   ArrowRight, Star, ChevronRight, Menu, X
 } from 'lucide-react'
 
@@ -261,38 +261,102 @@ export default function HomePage() {
 
       {/* Pricing */}
       <section id="pricing" className="px-6 py-32">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
-            Simples e gratuito
-          </h2>
-          <p className="text-slate-400 text-lg mb-12">
-            Sem taxas, sem limites. Use à vontade.
-          </p>
-          <div className="bg-gradient-to-br from-brand-500/20 to-emerald-500/10 border border-brand-500/30 rounded-3xl p-10">
-            <div className="text-6xl font-bold text-white mb-2 font-display">R$ 0</div>
-            <div className="text-brand-400 text-lg mb-8">Para sempre</div>
-            <ul className="text-left space-y-3 mb-10 max-w-xs mx-auto">
-              {[
-                'Recibos ilimitados',
-                'Clientes ilimitados',
-                'Download em PDF',
-                'Painel de controle completo',
-                'Dados 100% seguros',
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
-                  <CheckCircle className="w-5 h-5 text-brand-400 flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/auth/register"
-              className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-400 text-white px-10 py-4 rounded-2xl font-semibold text-base transition-all hover:shadow-2xl hover:shadow-brand-500/30"
-            >
-              Começar agora — é grátis
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
+              Planos para todos os tamanhos
+            </h2>
+            <p className="text-slate-400 text-lg">
+              Comece grátis por 14 dias. Sem cartão de crédito.
+            </p>
           </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Básico */}
+            <div className="bg-slate-900/50 border border-white/10 rounded-3xl p-8 flex flex-col">
+              <div className="mb-6">
+                <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Zap className="w-5 h-5 text-blue-400" />
+                </div>
+                <h3 className="text-white font-bold text-xl mb-1">Básico</h3>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-slate-400 text-sm">R$</span>
+                  <span className="text-4xl font-bold text-white font-display">29</span>
+                  <span className="text-slate-400 text-sm">/mês</span>
+                </div>
+                <p className="text-slate-400 text-sm mt-1">50 recibos por mês</p>
+              </div>
+              <ul className="space-y-3 mb-8 flex-1">
+                {['50 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Suporte por email'].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
+                    <CheckCircle className="w-4 h-4 text-brand-400 flex-shrink-0" />{f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/auth/register" className="w-full text-center bg-blue-500 hover:bg-blue-400 text-white py-3 rounded-2xl font-semibold text-sm transition-all">
+                Começar grátis
+              </Link>
+            </div>
+
+            {/* Pro — destaque */}
+            <div className="relative bg-gradient-to-br from-brand-500/20 to-emerald-500/10 border border-brand-500/40 rounded-3xl p-8 flex flex-col">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-xs font-bold px-4 py-1.5 rounded-full">
+                MAIS POPULAR
+              </div>
+              <div className="mb-6">
+                <div className="w-10 h-10 bg-brand-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Star className="w-5 h-5 text-brand-400 fill-brand-400" />
+                </div>
+                <h3 className="text-white font-bold text-xl mb-1">Pro</h3>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-slate-400 text-sm">R$</span>
+                  <span className="text-4xl font-bold text-white font-display">59</span>
+                  <span className="text-slate-400 text-sm">/mês</span>
+                </div>
+                <p className="text-slate-400 text-sm mt-1">200 recibos por mês</p>
+              </div>
+              <ul className="space-y-3 mb-8 flex-1">
+                {['200 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Logo personalizada', 'Suporte prioritário'].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
+                    <CheckCircle className="w-4 h-4 text-brand-400 flex-shrink-0" />{f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/auth/register" className="w-full text-center bg-brand-500 hover:bg-brand-400 text-white py-3 rounded-2xl font-semibold text-sm transition-all hover:shadow-xl hover:shadow-brand-500/30">
+                Começar grátis
+              </Link>
+            </div>
+
+            {/* Empresarial */}
+            <div className="bg-slate-900/50 border border-purple-500/20 rounded-3xl p-8 flex flex-col">
+              <div className="mb-6">
+                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Shield className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-white font-bold text-xl mb-1">Empresarial</h3>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-slate-400 text-sm">R$</span>
+                  <span className="text-4xl font-bold text-white font-display">99</span>
+                  <span className="text-slate-400 text-sm">/mês</span>
+                </div>
+                <p className="text-slate-400 text-sm mt-1">Recibos ilimitados</p>
+              </div>
+              <ul className="space-y-3 mb-8 flex-1">
+                {['Recibos ilimitados', 'Múltiplos usuários', 'Logo personalizada', 'Temas de recibo', 'Envio por email', 'Suporte dedicado'].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
+                    <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />{f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/auth/register" className="w-full text-center bg-purple-500 hover:bg-purple-400 text-white py-3 rounded-2xl font-semibold text-sm transition-all">
+                Começar grátis
+              </Link>
+            </div>
+          </div>
+
+          <p className="text-center text-slate-500 text-sm mt-8">
+            Todos os planos incluem 14 dias de trial gratuito · Cancele quando quiser · Pague via PIX, boleto ou cartão
+          </p>
         </div>
       </section>
 

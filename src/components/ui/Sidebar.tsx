@@ -6,8 +6,9 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   FileText, LayoutDashboard, Users, Settings,
-  LogOut, Menu, X, ChevronRight, CreditCard
+  LogOut, Menu, X, ChevronRight, CreditCard, Clock, AlertTriangle
 } from 'lucide-react'
+import { getSubscriptionStatus } from '@/lib/subscription'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -22,13 +23,30 @@ export function Sidebar() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [userName, setUserName] = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [trialInfo, setTrialInfo] = useState<{ message: string; isExpired: boolean; isTrialing: boolean } | null>(null)
 
   useEffect(() => { setOpen(false) }, [pathname])
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário')
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário')
+
+      // Fetch profile for company name
+      const { data: profile } = await supabase.from('profiles').select('company_name, full_name').eq('id', user.id).single()
+      if (profile?.company_name) setCompanyName(profile.company_name)
+      else if (profile?.full_name) setCompanyName(profile.full_name)
+
+      // Fetch subscription for trial info
+      const { data: sub } = await supabase.from('subscriptions').select('*, plans(*)').eq('user_id', user.id).single()
+      if (sub) {
+        const status = getSubscriptionStatus(sub as any)
+        if (status.isTrialing || status.isExpired) {
+          setTrialInfo({ message: status.message, isExpired: status.isExpired, isTrialing: status.isTrialing })
+        }
+      }
     })
   }, [])
 
@@ -68,13 +86,26 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-white/5 p-3">
+        {/* Trial banner */}
+        {trialInfo && (
+          <div className={`mx-3 mb-2 px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+            trialInfo.isExpired
+              ? 'bg-red-500/10 border border-red-500/20 text-red-400'
+              : 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400'
+          }`}>
+            {trialInfo.isExpired
+              ? <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+              : <Clock className="w-3.5 h-3.5 flex-shrink-0" />}
+            <span className="leading-tight">{trialInfo.message}</span>
+          </div>
+        )}
         <div className="flex items-center gap-3 px-3 py-2 mb-1">
           <div className="w-8 h-8 bg-brand-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-brand-400 text-xs font-bold uppercase">{userName.charAt(0) || '?'}</span>
+            <span className="text-brand-400 text-xs font-bold uppercase">{(companyName || userName).charAt(0) || '?'}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white text-xs font-medium truncate">{userName}</p>
-            <p className="text-slate-500 text-xs">Conta ativa</p>
+            <p className="text-white text-xs font-medium truncate">{companyName || userName}</p>
+            <p className="text-slate-500 text-xs truncate">{companyName ? userName : 'Conta ativa'}</p>
           </div>
         </div>
         <button
