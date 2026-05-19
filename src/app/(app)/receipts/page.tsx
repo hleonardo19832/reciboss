@@ -11,6 +11,10 @@ export default function ReceiptsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [receipts, setReceipts] = useState<any[]>([])
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
   
   // Quick Pay Modal states
   const [payReceipt, setPayReceipt] = useState<any | null>(null)
@@ -65,19 +69,40 @@ export default function ReceiptsPage() {
 
   if (loading) return <div className="flex justify-center items-center min-h-96"><Loader2 className="w-8 h-8 text-brand-400 animate-spin" /></div>
 
+  const filteredReceipts = receipts.filter(r => {
+    if (!selectedMonth) return true // Se vazio, mostra todos
+    const date = new Date(r.created_at)
+    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    return month === selectedMonth
+  })
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Recibos</h1>
-          <p className="text-slate-400 text-sm mt-1">{receipts.length} recibo(s) no total</p>
+          <p className="text-slate-400 text-sm mt-1">{filteredReceipts.length} recibo(s) neste mês</p>
         </div>
-        <Link href="/receipts/new" className="flex items-center gap-2 bg-brand-500 hover:bg-brand-400 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">
-          <Plus className="w-4 h-4" />Novo Recibo
-        </Link>
+        <div className="flex items-center gap-3">
+          <input 
+            type="month" 
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="bg-slate-900 border border-white/10 text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-brand-500"
+          />
+          <button
+            onClick={() => setSelectedMonth('')}
+            className="text-xs text-slate-400 hover:text-white"
+          >
+            Ver todos
+          </button>
+          <Link href="/receipts/new" className="flex items-center gap-2 bg-brand-500 hover:bg-brand-400 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">
+            <Plus className="w-4 h-4" />Novo Recibo
+          </Link>
+        </div>
       </div>
       <div className="bg-slate-900 border border-white/5 rounded-2xl overflow-hidden">
-        {receipts.length === 0 ? (
+        {filteredReceipts.length === 0 ? (
           <div className="p-16 text-center">
             <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
             <h3 className="text-white font-semibold mb-2">Nenhum recibo ainda</h3>
@@ -95,7 +120,7 @@ export default function ReceiptsPage() {
               <div className="col-span-2 text-right">Total</div>
             </div>
             <div className="divide-y divide-white/5">
-              {receipts.map(receipt => {
+              {filteredReceipts.map(receipt => {
                 const status = STATUS_LABELS[receipt.status]
                 return (
                   <Link key={receipt.id} href={`/receipts/${receipt.id}`} className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/2 transition-colors items-center">
@@ -110,8 +135,8 @@ export default function ReceiptsPage() {
                     </div>
                     <div className="hidden md:block col-span-2 text-slate-400 text-sm">{formatDate(receipt.issue_date)}</div>
                     <div className="col-span-4 md:col-span-2 flex justify-end md:justify-start items-center gap-2">
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${status.color === 'green' ? 'bg-brand-500/15 text-brand-400' : status.color === 'yellow' ? 'bg-yellow-500/15 text-yellow-400' : 'bg-red-500/15 text-red-400'}`}>
-                        {status.label}
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${status?.color === 'green' ? 'bg-brand-500/15 text-brand-400' : status?.color === 'yellow' ? 'bg-yellow-500/15 text-yellow-400' : 'bg-red-500/15 text-red-400'}`}>
+                        {status?.label || 'Desconhecido'}
                       </span>
                       {receipt.status === 'pending' && (
                         <button
