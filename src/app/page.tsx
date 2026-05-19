@@ -235,6 +235,30 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* How it works */}
+      <section id="how" className="px-6 py-32">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
+              Como funciona
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { step: '01', title: 'Crie sua conta', desc: 'Cadastre-se gratuitamente em menos de 1 minuto. Sem cartão de crédito.' },
+              { step: '02', title: 'Configure seu perfil', desc: 'Adicione os dados da sua empresa para personalizar seus recibos.' },
+              { step: '03', title: 'Emita seus recibos', desc: 'Crie recibos profissionais e baixe em PDF instantaneamente.' },
+            ].map((item, i) => (
+              <div key={i} className="text-center">
+                <div className="font-mono text-6xl font-bold text-brand-500/20 mb-4">{item.step}</div>
+                <h3 className="text-white font-semibold text-xl mb-3">{item.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
       <section className="px-6 py-24 bg-slate-900/30 border-y border-white/5">
         <div className="max-w-5xl mx-auto">
@@ -273,30 +297,6 @@ export default function HomePage() {
                   <p className="text-white font-semibold">{dep.name}</p>
                   <p className="text-slate-500 text-xs">{dep.role}</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section id="how" className="px-6 py-32">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
-              Como funciona
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { step: '01', title: 'Crie sua conta', desc: 'Cadastre-se gratuitamente em menos de 1 minuto. Sem cartão de crédito.' },
-              { step: '02', title: 'Configure seu perfil', desc: 'Adicione os dados da sua empresa para personalizar seus recibos.' },
-              { step: '03', title: 'Emita seus recibos', desc: 'Crie recibos profissionais e baixe em PDF instantaneamente.' },
-            ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className="font-mono text-6xl font-bold text-brand-500/20 mb-4">{item.step}</div>
-                <h3 className="text-white font-semibold text-xl mb-3">{item.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -386,7 +386,7 @@ export default function HomePage() {
                 <p className="text-slate-400 text-sm mt-1">Recibos ilimitados</p>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {['Recibos ilimitados', 'Clientes ilimitados', 'Logo e Assinatura', 'Temas de recibo', 'Envio direto no WhatsApp'].map((f, i) => (
+                {['Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF', 'Logo e Assinatura', 'Temas de recibo', 'Envio direto no WhatsApp'].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
                     <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />{f}
                   </li>
