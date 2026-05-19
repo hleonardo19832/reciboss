@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdmin } from '@supabase/supabase-js'
 import { createOrGetCustomer, createSubscription } from '@/lib/asaas'
 import { PLANS } from '@/lib/subscription'
+
+const supabaseAdmin = createAdmin(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,8 +38,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
     }
 
-       // Get user profile for name and document
-    const { data: profile } = await supabase
+    // Use admin client for DB queries (safe because user is already verified above)
+    const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('full_name, company_name, company_document')
       .eq('id', user.id)
@@ -66,8 +72,8 @@ export async function POST(request: NextRequest) {
       creditCardHolderInfo: credit_card_holder_info,
     })
 
-    // Save subscription ID to DB (will be fully activated by webhook)
-    await supabase
+    // Save subscription ID to DB using admin client
+    await supabaseAdmin
       .from('subscriptions')
       .upsert({
         user_id: user.id,
@@ -81,7 +87,6 @@ export async function POST(request: NextRequest) {
     let paymentInfo = null
     if (billing_type === 'PIX' || billing_type === 'BOLETO') {
       const { getSubscriptionPaymentLink } = await import('@/lib/asaas')
-      // Retry loop to give Asaas time to generate the payment
       for (let i = 0; i < 6; i++) {
         await new Promise(r => setTimeout(r, 1000))
         paymentInfo = await getSubscriptionPaymentLink(subscription.id)
