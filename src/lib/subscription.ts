@@ -91,9 +91,9 @@ export function getSubscriptionStatus(sub: Subscription): {
       }
       const remaining = (plan.receipts_limit || 0) - sub.receipts_this_month
       if (remaining <= 0) {
-        return { canCreate: false, isTrialing: false, isExpired: false, daysLeft: null, message: 'Limite de recibos atingido. Aguarde o próximo mês ou faça upgrade.' }
+        return { canCreate: false, isTrialing: false, isExpired: false, daysLeft: null, message: `Plano ${plan.name}: Limite de recibos atingido.` }
       }
-      return { canCreate: true, isTrialing: false, isExpired: false, daysLeft: null, message: `${remaining} recibo(s) restantes este mês` }
+      return { canCreate: true, isTrialing: false, isExpired: false, daysLeft: null, message: `Plano ${plan.name}: ${remaining} recibo(s) restantes` }
     }
     return { canCreate: true, isTrialing: false, isExpired: false, daysLeft: null, message: `Plano ${plan?.name} ativo` }
   }
