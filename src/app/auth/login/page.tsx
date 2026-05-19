@@ -13,7 +13,11 @@ export default function LoginPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // If already logged in, go to dashboard
+    // Se vier redirecionado do cadastro, pega o email da URL e preenche sozinho
+    const params = new URLSearchParams(window.location.search)
+    const emailParam = params.get('email')
+    if (emailParam) setEmail(emailParam)
+
     const supabase = createClient()
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) window.location.href = '/dashboard'
@@ -27,11 +31,9 @@ export default function LoginPage() {
 
     const supabase = createClient()
 
-    // Listen for session BEFORE signing in
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         subscription.unsubscribe()
-        // Small delay to ensure cookie is written
         setTimeout(() => {
           window.location.href = '/dashboard'
         }, 500)
@@ -42,8 +44,11 @@ export default function LoginPage() {
 
     if (error) {
       subscription.unsubscribe()
-      setError('Email ou senha incorretos.')
+      // Como não podemos distinguir entre senha errada e conta inexistente (por segurança),
+      // apenas exibimos um alerta claro para o usuário:
+      setError('Senha incorreta ou e-mail não cadastrado.')
       setLoading(false)
+      return
     }
   }
 
