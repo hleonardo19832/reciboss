@@ -12,18 +12,21 @@ export default function ReceiptPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
   const [receipt, setReceipt] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
+  const [subscription, setSubscription] = useState<any>(null)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.replace('/auth/login'); return }
-      const [{ data: r }, { data: p }] = await Promise.all([
+      const [{ data: r }, { data: p }, { data: s }] = await Promise.all([
         supabase.from('receipts').select('*, clients(*)').eq('id', params.id).eq('user_id', user.id).single(),
-        supabase.from('profiles').select('*').eq('id', user.id).single()
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('subscriptions').select('*').eq('user_id', user.id).single()
       ])
       if (!r) { router.replace('/receipts'); return }
       setReceipt(r)
       setProfile(p)
+      setSubscription(s)
       setLoading(false)
     })
   }, [params.id, router])
@@ -46,7 +49,7 @@ export default function ReceiptPage({ params }: { params: { id: string } }) {
           <Pencil className="w-4 h-4" />Editar
         </Link>
       </div>
-      <ReceiptViewer receipt={receipt} profile={profile} />
+      <ReceiptViewer receipt={receipt} profile={profile} subscription={subscription} />
     </div>
   )
 }
