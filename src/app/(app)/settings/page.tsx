@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Upload, ImageIcon, Loader2, X } from 'lucide-react'
-import { formatDocument } from '@/lib/utils'
+import { Loader2, CheckCircle, Upload, X, ImageIcon } from 'lucide-react'
+import { formatDocument, formatPhone } from '@/lib/utils'
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
@@ -14,6 +14,7 @@ export default function SettingsPage() {
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fileSignatureInputRef = useRef<HTMLInputElement>(null)
+  
   const [form, setForm] = useState({
     full_name: '', company_name: '', company_document: '',
     company_address: '', company_phone: '', company_email: '',
@@ -157,8 +158,8 @@ export default function SettingsPage() {
         <p className="text-slate-400 text-sm">Personalize os dados da sua empresa e do emissor</p>
       </div>
 
-      {/* Logo upload */}
       <div className="grid md:grid-cols-2 gap-6 mb-6">
+        {/* Logo Upload */}
         <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
           <h2 className="text-white font-semibold mb-1">Logo da empresa</h2>
           <p className="text-slate-400 text-xs mb-4">Aparecerá no cabeçalho dos recibos. Máximo 2MB.</p>
@@ -169,7 +170,7 @@ export default function SettingsPage() {
                 <img src={logoUrl} alt="Logo" className="w-20 h-20 rounded-xl object-cover bg-slate-800 border border-white/10" />
                 <button
                   onClick={handleRemoveLogo}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-400 rounded-full flex items-center justify-center transition-colors"
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-400 rounded-full flex items-center justify-center transition-colors shadow-lg"
                 >
                   <X className="w-3 h-3 text-white" />
                 </button>
@@ -203,7 +204,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Signature upload */}
+        {/* Signature Upload */}
         <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
           <h2 className="text-white font-semibold mb-1">Assinatura da empresa</h2>
           <p className="text-slate-400 text-xs mb-4">Aparecerá no rodapé dos recibos. Máximo 2MB.</p>
@@ -214,7 +215,7 @@ export default function SettingsPage() {
                 <img src={signatureUrl} alt="Assinatura" className="w-20 h-20 rounded-xl object-contain bg-white p-2 border border-white/10" />
                 <button
                   onClick={handleRemoveSignature}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-400 rounded-full flex items-center justify-center transition-colors"
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-400 rounded-full flex items-center justify-center transition-colors shadow-lg"
                 >
                   <X className="w-3 h-3 text-white" />
                 </button>
@@ -289,7 +290,7 @@ export default function SettingsPage() {
             <input
               type="tel"
               value={form.company_phone}
-              onChange={e => setForm(p => ({ ...p, company_phone: e.target.value }))}
+              onChange={e => setForm(p => ({ ...p, company_phone: formatPhone(e.target.value) }))}
               placeholder="(00) 00000-0000"
               className={inputClass}
             />
@@ -318,9 +319,12 @@ export default function SettingsPage() {
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex items-center justify-end gap-4 pt-4 border-t border-white/5 mt-6">
           {saved && (
-            <span className="text-emerald-400 text-sm font-medium animate-fade-in">✓ Alterações salvas!</span>
+            <span className="flex items-center gap-1.5 text-emerald-400 text-sm font-medium animate-fade-in bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+              <CheckCircle className="w-4 h-4" />
+              Salvo com sucesso!
+            </span>
           )}
           <button
             type="submit"
