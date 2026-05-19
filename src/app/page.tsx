@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import {
   FileText, CheckCircle, Download, Shield, Zap, Users, Star,
-  ArrowRight, ChevronRight, Menu, X
+  ArrowRight, ChevronRight, Menu, X, MessageCircle, PenTool, Quote
 } from 'lucide-react'
 
 export default function HomePage() {
@@ -185,16 +185,16 @@ export default function HomePage() {
                 bg: 'bg-yellow-500/10',
               },
               {
-                icon: Download,
-                title: 'Download em PDF',
-                description: 'Baixe seus recibos em PDF de alta qualidade, prontos para impressão ou envio por email.',
-                color: 'text-blue-400',
-                bg: 'bg-blue-500/10',
+                icon: MessageCircle,
+                title: 'Envio pelo WhatsApp',
+                description: 'Com apenas um clique, envie o recibo detalhado diretamente no WhatsApp do seu cliente.',
+                color: 'text-emerald-400',
+                bg: 'bg-emerald-500/10',
               },
               {
-                icon: Shield,
-                title: 'Dados seguros',
-                description: 'Cada usuário acessa apenas seus próprios dados. Segurança e privacidade garantidas.',
+                icon: PenTool,
+                title: 'Sua marca, sua assinatura',
+                description: 'Deixe tudo com a sua cara adicionando a Logo da sua empresa e a sua Assinatura real no rodapé.',
                 color: 'text-brand-400',
                 bg: 'bg-brand-500/10',
               },
@@ -208,14 +208,14 @@ export default function HomePage() {
               {
                 icon: CheckCircle,
                 title: 'Múltiplos status',
-                description: 'Acompanhe recibos pagos, pendentes e cancelados em um painel visual e organizado.',
-                color: 'text-emerald-400',
-                bg: 'bg-emerald-500/10',
+                description: 'Acompanhe recibos pagos, pendentes e registre "Pagamentos Rápidos" em segundos.',
+                color: 'text-blue-400',
+                bg: 'bg-blue-500/10',
               },
               {
-                icon: FileText,
-                title: 'Numeração automática',
-                description: 'Numeração sequencial automática para manter seu controle financeiro organizado.',
+                icon: Shield,
+                title: 'Dados seguros',
+                description: 'Cada usuário acessa apenas seus próprios dados. Segurança de nível bancário com a nuvem.',
                 color: 'text-orange-400',
                 bg: 'bg-orange-500/10',
               },
@@ -229,6 +229,50 @@ export default function HomePage() {
                 </div>
                 <h3 className="font-semibold text-white text-lg mb-2">{feature.title}</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="px-6 py-24 bg-slate-900/30 border-y border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-4xl font-bold text-white mb-4">
+              O que dizem nossos clientes
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                name: 'Carlos Mendes',
+                role: 'Eletricista',
+                text: 'Parei de usar o velho bloquinho de papel. Agora gero o recibo na frente do cliente e já envio no WhatsApp. Me passa muito mais credibilidade.'
+              },
+              {
+                name: 'Dra. Amanda',
+                role: 'Psicóloga',
+                text: 'A funcionalidade de colocar a minha logo e a minha assinatura digital no rodapé do PDF deixou meus recibos de terapia perfeitos!'
+              },
+              {
+                name: 'Roberto Nunes',
+                role: 'Consultor de TI',
+                text: 'Muito simples de usar. Ter o cadastro de todos os meus clientes e saber quem já pagou e quem está pendente facilitou muito o meu fim de mês.'
+              }
+            ].map((dep, i) => (
+              <div key={i} className="bg-slate-900 border border-white/10 rounded-3xl p-8 relative">
+                <Quote className="w-10 h-10 text-brand-500/20 absolute top-6 right-6" />
+                <div className="flex gap-1 mb-6">
+                  {[1,2,3,4,5].map(star => <Star key={star} className="w-4 h-4 text-brand-400 fill-brand-400" />)}
+                </div>
+                <p className="text-slate-300 text-sm leading-relaxed mb-6">
+                  "{dep.text}"
+                </p>
+                <div>
+                  <p className="text-white font-semibold">{dep.name}</p>
+                  <p className="text-slate-500 text-xs">{dep.role}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -287,7 +331,7 @@ export default function HomePage() {
                 <p className="text-slate-400 text-sm mt-1">50 recibos por mês</p>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {['50 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Suporte por email'].map((f, i) => (
+                {['50 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Envio no WhatsApp'].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
                     <CheckCircle className="w-4 h-4 text-brand-400 flex-shrink-0" />{f}
                   </li>
@@ -316,7 +360,7 @@ export default function HomePage() {
                 <p className="text-slate-400 text-sm mt-1">200 recibos por mês</p>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {['200 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Logo personalizada', 'Suporte prioritário'].map((f, i) => (
+                {['200 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Logo e Assinatura', 'Envio no WhatsApp'].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
                     <CheckCircle className="w-4 h-4 text-brand-400 flex-shrink-0" />{f}
                   </li>
@@ -342,7 +386,7 @@ export default function HomePage() {
                 <p className="text-slate-400 text-sm mt-1">Recibos ilimitados</p>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {['Recibos ilimitados', 'Múltiplos usuários', 'Logo personalizada', 'Temas de recibo', 'Envio por email', 'Suporte dedicado'].map((f, i) => (
+                {['Recibos ilimitados', 'Clientes ilimitados', 'Logo e Assinatura', 'Temas de recibo', 'Envio direto no WhatsApp'].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
                     <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />{f}
                   </li>
