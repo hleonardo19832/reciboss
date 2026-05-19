@@ -39,6 +39,7 @@ async function asaasRequest(path: string, method = 'GET', body?: object) {
 export async function createOrGetCustomer(params: {
   name: string
   email: string
+  cpfCnpj: string
   externalReference: string // user_id
 }) {
   // Check if customer already exists by externalReference
@@ -51,6 +52,7 @@ export async function createOrGetCustomer(params: {
   return await asaasRequest('/customers', 'POST', {
     name: params.name,
     email: params.email,
+    cpfCnpj: params.cpfCnpj,
     externalReference: params.externalReference,
     notificationDisabled: false,
   })
