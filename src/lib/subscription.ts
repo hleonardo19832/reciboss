@@ -30,7 +30,7 @@ export const PLANS = {
     price: 0,
     receipts_limit: null,
     description: 'Trial de 14 dias',
-    features: ['Acesso completo por 14 dias', 'Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF'],
+    features: ['Acesso completo por 14 dias', 'Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF', 'Envio no WhatsApp'],
     color: 'slate',
   },
   basic: {
@@ -57,7 +57,7 @@ export const PLANS = {
     price: 99,
     receipts_limit: null,
     description: 'Recibos ilimitados',
-    features: ['Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF', 'Logo e Assinatura', 'Temas de recibo', 'Envio direto no WhatsApp'],
+    features: ['Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF', 'Logo e Assinatura', 'Temas de recibo', 'Envio no WhatsApp'],
     color: 'purple',
   },
 }
