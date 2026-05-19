@@ -24,7 +24,7 @@ export function Sidebar() {
   const [open, setOpen] = useState(false)
   const [userName, setUserName] = useState('')
   const [companyName, setCompanyName] = useState('')
-  const [trialInfo, setTrialInfo] = useState<{ message: string; isExpired: boolean; isTrialing: boolean } | null>(null)
+  const [subStatus, setSubStatus] = useState<{ message: string; colorClass: string; icon: any } | null>(null)
 
   useEffect(() => { setOpen(false) }, [pathname])
 
@@ -43,9 +43,22 @@ export function Sidebar() {
       const { data: sub } = await supabase.from('subscriptions').select('*, plans(*)').eq('user_id', user.id).single()
       if (sub) {
         const status = getSubscriptionStatus(sub as any)
-        if (status.isTrialing || status.isExpired) {
-          setTrialInfo({ message: status.message, isExpired: status.isExpired, isTrialing: status.isTrialing })
+        
+        let colorClass = 'bg-slate-800/50 border-white/10 text-slate-300'
+        let icon = FileText
+        
+        if (status.isExpired) {
+          colorClass = 'bg-red-500/10 border-red-500/20 text-red-400'
+          icon = AlertTriangle
+        } else if (status.isTrialing) {
+          colorClass = 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+          icon = Clock
+        } else {
+          colorClass = 'bg-brand-500/10 border-brand-500/20 text-brand-400'
+          icon = CreditCard
         }
+        
+        setSubStatus({ message: status.message, colorClass, icon })
       }
     })
   }, [])
@@ -86,17 +99,11 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-white/5 p-3">
-        {/* Trial banner */}
-        {trialInfo && (
-          <div className={`mx-3 mb-2 px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
-            trialInfo.isExpired
-              ? 'bg-red-500/10 border border-red-500/20 text-red-400'
-              : 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400'
-          }`}>
-            {trialInfo.isExpired
-              ? <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-              : <Clock className="w-3.5 h-3.5 flex-shrink-0" />}
-            <span className="leading-tight">{trialInfo.message}</span>
+        {/* Trial/Plan banner */}
+        {subStatus && (
+          <div className={`mx-3 mb-2 px-3 py-2 border rounded-xl text-xs flex items-center gap-2 ${subStatus.colorClass}`}>
+            <subStatus.icon className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="leading-tight">{subStatus.message}</span>
           </div>
         )}
         <div className="flex items-center gap-3 px-3 py-2 mb-1">
@@ -126,7 +133,7 @@ export function Sidebar() {
         <NavContent />
       </aside>
 
-      {/* Mobile burger — fixed position, always visible */}
+      {/* Mobile burger */}
       <button
         onClick={() => setOpen(true)}
         className="lg:hidden fixed top-3.5 left-4 z-40 w-9 h-9 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-colors shadow-lg"
