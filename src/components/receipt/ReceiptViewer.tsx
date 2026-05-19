@@ -5,12 +5,15 @@ import { Receipt, Profile } from '@/lib/types'
 import { formatCurrency, formatDate, STATUS_LABELS } from '@/lib/utils'
 import { Download, Printer, CheckCircle, Clock, XCircle, Building2, MessageCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { hasWhatsAppFeature } from '@/lib/subscription'
 
 interface Props {
   receipt: Receipt & { clients?: any }
   profile: Profile | null
+  subscription: any
 }
 
+// ─── Themes ───────────────────────────────────────────────
 const THEMES = {
   classic:  { label: 'Clássico',  header: 'bg-slate-900',   accent: '#22c55e' },
   ocean:    { label: 'Ocean',     header: 'bg-blue-900',    accent: '#3b82f6' },
@@ -26,7 +29,7 @@ const THEMES = {
 
 type ThemeKey = keyof typeof THEMES
 
-export default function ReceiptViewer({ receipt, profile }: Props) {
+export default function ReceiptViewer({ receipt, profile, subscription }: Props) {
   const [downloading, setDownloading] = useState(false)
   const [theme, setTheme] = useState<ThemeKey>((profile as any)?.receipt_theme || 'classic')
   const status = STATUS_LABELS[receipt.status]
@@ -89,6 +92,7 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
   }
 
   const logoUrl = (profile as any)?.company_logo_url
+  const hasClientEmail = !!receipt.clients?.email
 
   return (
     <div className="space-y-4">
@@ -113,16 +117,27 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Send WhatsApp button */}
-          <button
-            onClick={handleSendWhatsApp}
-            disabled={!receipt.clients?.phone}
-            title={receipt.clients?.phone ? 'Enviar por WhatsApp para o cliente' : 'Cliente sem telefone cadastrado'}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-emerald-600/20"
-          >
-            <MessageCircle className="w-4 h-4" />
-            Enviar no WhatsApp
-          </button>
+          {/* Send WhatsApp button - Blocked for basic/pro plans */}
+          {hasWhatsAppFeature(subscription) ? (
+            <button
+              onClick={handleSendWhatsApp}
+              disabled={!receipt.clients?.phone}
+              title={receipt.clients?.phone ? 'Enviar por WhatsApp para o cliente' : 'Cliente sem telefone cadastrado'}
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-emerald-600/20"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Enviar no WhatsApp
+            </button>
+          ) : (
+            <a
+              href="/billing"
+              title="Exclusivo do plano Empresarial"
+              className="flex items-center gap-2 bg-emerald-600/20 text-emerald-500/50 cursor-pointer px-4 py-2.5 rounded-xl text-sm font-semibold border border-emerald-500/10 hover:bg-emerald-600/30 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+              WhatsApp (Plano Empresarial)
+            </a>
+          )}
 
           <button
             onClick={handlePrint}
@@ -227,11 +242,11 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
           </div>
 
           {receipt.description && (
-            <div className="mb-6">
-              <p className="text-slate-400 text-xs uppercase tracking-widest font-medium mb-2">Descrição</p>
-              <p className="text-slate-700 text-sm">{receipt.description}</p>
-            </div>
-          )}
+             <div className="mb-6">
+               <p className="text-slate-400 text-xs uppercase tracking-widest font-medium mb-2">Descrição</p>
+               <p className="text-slate-700 text-sm">{receipt.description}</p>
+             </div>
+           )}
 
           <div className="mb-6">
             <table className="w-full">
