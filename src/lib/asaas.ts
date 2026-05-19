@@ -10,7 +10,8 @@ function getBaseUrl() {
 }
 
 function getApiKey() {
-  return process.env.ASAAS_API_KEY || ''
+  const key = process.env.ASAAS_API_KEY || ''
+  return key.startsWith('$') ? key : `$${key}`
 }
 
 async function asaasRequest(path: string, method = 'GET', body?: object) {
