@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Receipt, Profile } from '@/lib/types'
 import { formatCurrency, formatDate, STATUS_LABELS } from '@/lib/utils'
 import { Download, Printer, CheckCircle, Clock, XCircle, Building2, MessageCircle, Loader2 } from 'lucide-react'
@@ -97,9 +97,7 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
 
   return (
     <div className="space-y-4">
-      {/* Action buttons */}
       <div className="flex items-center gap-3 justify-between no-print flex-wrap">
-        {/* Theme selector */}
         <div className="flex items-center gap-2">
           <span className="text-slate-400 text-xs">Tema:</span>
           {hasThemeFeature(subscription) ? (
@@ -124,7 +122,6 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Send WhatsApp button */}
           {hasWhatsAppFeature(subscription) ? (
             <button
               onClick={handleSendWhatsApp}
@@ -165,13 +162,10 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
         </div>
       </div>
 
-      {/* Receipt document */}
       <div className="bg-white rounded-2xl shadow-2xl overflow-hidden" id="receipt-document">
-        {/* Header — themed */}
         <div className={`${t.header} px-10 py-8`}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              {/* Logo or icon */}
               {logoUrl ? (
                 <img
                   src={logoUrl}
@@ -204,7 +198,6 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
           </div>
         </div>
 
-        {/* Status bar */}
         <div className={`px-10 py-3 flex items-center gap-2 ${
           receipt?.status === 'paid' ? 'bg-emerald-50' :
           receipt?.status === 'pending' ? 'bg-amber-50' :
@@ -223,7 +216,6 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
           </span>
         </div>
 
-        {/* Body */}
         <div className="px-10 py-8">
           <div className="grid grid-cols-2 gap-8 mb-8">
             <div>
@@ -323,5 +315,4 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
               )}
             </div>
             <div className="flex flex-col items-center md:items-end justify-end h-full">
-              {(profile as any)?.company_signature_url ? (
-                <div className="flex flex-col items-center">
+              {(
