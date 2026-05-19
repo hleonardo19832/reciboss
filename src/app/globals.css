@@ -63,3 +63,16 @@ body {
   #receipt-print, #receipt-print * { visibility: visible; }
   #receipt-print { position: absolute; left: 0; top: 0; width: 100%; }
 }
+
+/* Ícone de calendário branco para inputs de data/mês no tema escuro */
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+input[type="month"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
