@@ -57,7 +57,7 @@ export const PLANS = {
     price: 99,
     receipts_limit: null,
     description: 'Recibos ilimitados',
-    features: ['Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF', 'Logo personalizada no recibo', 'Múltiplos usuários', 'Temas de recibo', 'Envio por email', 'Suporte dedicado'],
+    features: ['Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF', 'Logo e Assinatura', 'Temas de recibo', 'Envio direto no WhatsApp', 'Suporte dedicado'],
     color: 'purple',
   },
 }
@@ -112,6 +112,20 @@ export function getSubscriptionStatus(sub: Subscription): {
 export function hasWhatsAppFeature(sub: Subscription | null): boolean {
   if (!sub) return false
   if (sub.status === 'trialing') return true // Liberado no trial
-  if (sub.status === 'active' && sub.plan_id === 'enterprise') return true // Apenas no Empresarial
+  if (sub.status === 'active') return true // Todos os planos pagos têm WhatsApp
+  return false
+}
+
+export function hasLogoSignatureFeature(sub: Subscription | null): boolean {
+  if (!sub) return false
+  if (sub.status === 'trialing') return true
+  if (sub.status === 'active' && ['pro', 'enterprise'].includes(sub.plan_id)) return true
+  return false
+}
+
+export function hasThemeFeature(sub: Subscription | null): boolean {
+  if (!sub) return false
+  if (sub.status === 'trialing') return true
+  if (sub.status === 'active' && sub.plan_id === 'enterprise') return true
   return false
 }
