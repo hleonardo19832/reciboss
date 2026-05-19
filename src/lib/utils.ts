@@ -37,3 +37,22 @@ export const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: 'Pendente', color: 'yellow' },
   cancelled: { label: 'Cancelado', color: 'red' },
 }
+
+export function formatDocument(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (digits.length <= 11) {
+    // CPF
+    return digits
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+  } else {
+    // CNPJ
+    return digits
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
+      .slice(0, 18)
+  }
+}
