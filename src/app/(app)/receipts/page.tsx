@@ -49,8 +49,8 @@ export default function ReceiptsPage() {
       .update({
         status: 'paid',
         payment_method: paymentMethod,
-        payment_date: paymentDate, // Make sure column exists
-        total: Number(paymentValue) // Update total if confirmed differently
+        payment_date: paymentDate,
+        total: Number(paymentValue.replace(',', '.'))
       })
       .eq('id', payReceipt.id)
 
@@ -183,11 +183,13 @@ export default function ReceiptsPage() {
               <div>
                 <label className="block text-slate-400 text-xs font-medium mb-1.5">Confirmar Valor (R$)</label>
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
                   required
                   value={paymentValue}
-                  onChange={e => setPaymentValue(e.target.value)}
+                  onChange={e => {
+                    const val = e.target.value.replace(/[^\d.,]/g, '')
+                    setPaymentValue(val)
+                  }}
                   className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm font-semibold focus:outline-none focus:border-brand-500"
                 />
               </div>
