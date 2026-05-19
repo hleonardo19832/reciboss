@@ -77,21 +77,17 @@ export default function NewReceiptForm() {
     }))
   }
 
-  // Handle price input — clears leading zero on focus, updates on change
+  // Handle price input with money mask
   const handlePriceChange = (id: string, raw: string) => {
-    setPriceInputs(prev => ({ ...prev, [id]: raw }))
-    const num = parseFloat(raw) || 0
+    let v = raw.replace(/\D/g, '')
+    if (!v) {
+      updateItem(id, 'unit_price', 0)
+      setPriceInputs(prev => ({ ...prev, [id]: '' }))
+      return
+    }
+    const num = parseInt(v, 10) / 100
     updateItem(id, 'unit_price', num)
-  }
-
-  const handlePriceFocus = (id: string, currentValue: number) => {
-    // Show empty string when value is 0
-    setPriceInputs(prev => ({ ...prev, [id]: currentValue === 0 ? '' : String(currentValue) }))
-  }
-
-  const handlePriceBlur = (id: string, currentValue: number) => {
-    setPriceInputs(prev => ({ ...prev, [id]: '' }))
-    updateItem(id, 'unit_price', currentValue)
+    setPriceInputs(prev => ({ ...prev, [id]: num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }))
   }
 
   const addItem = () => setItems(prev => [...prev, {
@@ -220,7 +216,7 @@ export default function NewReceiptForm() {
                 <div />
                 <span className={labelClass}>Descrição</span>
                 <span className={labelClass}>Qtd.</span>
-                <span className={labelClass}>Preço unit.</span>
+                <span className={labelClass}>Valor</span>
                 <span className={labelClass}>Total</span>
                 <div />
               </div>
@@ -253,12 +249,10 @@ export default function NewReceiptForm() {
                       min="0.01" step="0.01" placeholder="1" required className={inputClass} />
 
                     {/* Price */}
-                    <input type="number"
-                      value={priceInputs[item.id] !== undefined ? priceInputs[item.id] : (item.unit_price === 0 ? '' : item.unit_price)}
+                    <input type="text"
+                      value={priceInputs[item.id] !== undefined ? priceInputs[item.id] : (item.unit_price === 0 ? '' : item.unit_price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                       onChange={e => handlePriceChange(item.id, e.target.value)}
-                      onFocus={() => handlePriceFocus(item.id, item.unit_price)}
-                      onBlur={() => handlePriceBlur(item.id, item.unit_price)}
-                      min="0" step="0.01" placeholder="0,00" required className={inputClass} />
+                      placeholder="0,00" required className={inputClass} />
 
                     {/* Total */}
                     <div className="bg-slate-800 border border-white/5 rounded-xl px-3 py-2.5 text-slate-300 text-sm font-medium text-right overflow-hidden">
