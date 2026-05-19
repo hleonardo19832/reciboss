@@ -39,7 +39,7 @@ export const PLANS = {
     price: 29,
     receipts_limit: 50,
     description: '50 recibos por mês',
-    features: ['50 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Suporte por email'],
+    features: ['50 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Envio no WhatsApp'],
     color: 'blue',
   },
   pro: {
@@ -48,7 +48,7 @@ export const PLANS = {
     price: 59,
     receipts_limit: 200,
     description: '200 recibos por mês',
-    features: ['200 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Logo personalizada no recibo', 'Suporte prioritário'],
+    features: ['200 recibos por mês', 'Clientes ilimitados', 'Download em PDF', 'Logo e Assinatura', 'Envio no WhatsApp'],
     color: 'brand',
   },
   enterprise: {
@@ -57,7 +57,7 @@ export const PLANS = {
     price: 99,
     receipts_limit: null,
     description: 'Recibos ilimitados',
-    features: ['Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF', 'Logo e Assinatura', 'Temas de recibo', 'Envio direto no WhatsApp', 'Suporte dedicado'],
+    features: ['Recibos ilimitados', 'Clientes ilimitados', 'Download em PDF', 'Logo e Assinatura', 'Temas de recibo', 'Envio direto no WhatsApp'],
     color: 'purple',
   },
 }
