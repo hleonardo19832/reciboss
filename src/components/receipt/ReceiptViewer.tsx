@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Receipt, Profile } from '@/lib/types'
 import { formatCurrency, formatDate, STATUS_LABELS } from '@/lib/utils'
 import { Download, Printer, CheckCircle, Clock, XCircle, Building2, MessageCircle, Loader2 } from 'lucide-react'
@@ -94,23 +94,26 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
   }
 
   const logoUrl = (profile as any)?.company_logo_url
+  const hasClientEmail = !!receipt.clients?.email
 
   return (
     <div className="space-y-4">
+      {/* Action buttons */}
       <div className="flex items-center gap-3 justify-between no-print flex-wrap">
+        {/* Theme selector */}
         <div className="flex items-center gap-2">
           <span className="text-slate-400 text-xs">Tema:</span>
           {hasThemeFeature(subscription) ? (
             <div className="flex gap-1.5">
-              {(Object.entries(THEMES) as [ThemeKey, typeof THEMES[ThemeKey]][]).map(([key, themeObj]) => (
+              {(Object.entries(THEMES) as [ThemeKey, typeof THEMES[ThemeKey]][]).map(([key, t]) => (
                 <button
                   key={key}
                   onClick={() => saveTheme(key)}
-                  title={themeObj.label}
+                  title={t.label}
                   className={`w-6 h-6 rounded-full border-2 transition-all ${
                     theme === key ? 'border-white scale-110' : 'border-transparent opacity-60'
                   }`}
-                  style={{ backgroundColor: themeObj.accent }}
+                  style={{ backgroundColor: t.accent }}
                 />
               ))}
             </div>
@@ -122,6 +125,7 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Send WhatsApp button */}
           {hasWhatsAppFeature(subscription) ? (
             <button
               onClick={handleSendWhatsApp}
@@ -162,10 +166,13 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
         </div>
       </div>
 
+      {/* Receipt document */}
       <div className="bg-white rounded-2xl shadow-2xl overflow-hidden" id="receipt-document">
+        {/* Header — themed */}
         <div className={`${t.header} px-10 py-8`}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
+              {/* Logo or icon */}
               {logoUrl ? (
                 <img
                   src={logoUrl}
@@ -192,30 +199,32 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
             </div>
             <div className="text-right">
               <p className="text-slate-400 text-xs uppercase tracking-widest font-medium mb-1">Recibo</p>
-              <p className="text-white font-bold font-mono text-lg">{receipt?.receipt_number}</p>
-              <p className="text-slate-400 text-sm mt-1">{formatDate(receipt?.issue_date || new Date().toISOString())}</p>
+              <p className="text-white font-bold font-mono text-lg">{receipt.receipt_number}</p>
+              <p className="text-slate-400 text-sm mt-1">{formatDate(receipt.issue_date)}</p>
             </div>
           </div>
         </div>
 
+        {/* Status bar */}
         <div className={`px-10 py-3 flex items-center gap-2 ${
-          receipt?.status === 'paid' ? 'bg-emerald-50' :
-          receipt?.status === 'pending' ? 'bg-amber-50' :
+          receipt.status === 'paid' ? 'bg-emerald-50' :
+          receipt.status === 'pending' ? 'bg-amber-50' :
           'bg-red-50'
         }`}>
-          {receipt?.status === 'paid' && <CheckCircle className="w-4 h-4 text-emerald-600" />}
-          {receipt?.status === 'pending' && <Clock className="w-4 h-4 text-amber-600" />}
-          {receipt?.status === 'cancelled' && <XCircle className="w-4 h-4 text-red-600" />}
+          {receipt.status === 'paid' && <CheckCircle className="w-4 h-4 text-emerald-600" />}
+          {receipt.status === 'pending' && <Clock className="w-4 h-4 text-amber-600" />}
+          {receipt.status === 'cancelled' && <XCircle className="w-4 h-4 text-red-600" />}
           <span className={`text-sm font-semibold ${
-            receipt?.status === 'paid' ? 'text-emerald-700' :
-            receipt?.status === 'pending' ? 'text-amber-700' :
+            receipt.status === 'paid' ? 'text-emerald-700' :
+            receipt.status === 'pending' ? 'text-amber-700' :
             'text-red-700'
           }`}>
             {status.label}
-            {receipt?.payment_method && receipt?.status === 'paid' && ` · Pago via ${receipt.payment_method}`}
+            {receipt.payment_method && receipt.status === 'paid' && ` · Pago via ${receipt.payment_method}`}
           </span>
         </div>
 
+        {/* Body */}
         <div className="px-10 py-8">
           <div className="grid grid-cols-2 gap-8 mb-8">
             <div>
@@ -226,7 +235,7 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
             </div>
             <div>
               <p className="text-slate-400 text-xs uppercase tracking-widest font-medium mb-2">Recebido de</p>
-              {receipt?.clients ? (
+              {receipt.clients ? (
                 <>
                   <p className="text-slate-900 font-semibold">{receipt.clients.name}</p>
                   {receipt.clients.document && <p className="text-slate-500 text-sm">CPF/CNPJ: {receipt.clients.document}</p>}
@@ -240,7 +249,7 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
             </div>
           </div>
 
-          {receipt?.description && (
+          {receipt.description && (
             <div className="mb-6">
               <p className="text-slate-400 text-xs uppercase tracking-widest font-medium mb-2">Descrição</p>
               <p className="text-slate-700 text-sm">{receipt.description}</p>
@@ -274,9 +283,9 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
             <div className="w-64 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Subtotal</span>
-                <span className="text-slate-700">{formatCurrency(Number(receipt?.subtotal || 0))}</span>
+                <span className="text-slate-700">{formatCurrency(Number(receipt.subtotal))}</span>
               </div>
-              {Number(receipt?.discount) > 0 && (
+              {Number(receipt.discount) > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Desconto</span>
                   <span className="text-red-600">- {formatCurrency(Number(receipt.discount))}</span>
@@ -285,16 +294,16 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
               <div className="border-t-2 border-slate-900 pt-2 flex justify-between items-center">
                 <span className="text-slate-900 font-bold text-base">TOTAL</span>
                 <span style={{ fontFamily: 'Arial, Helvetica, sans-serif', letterSpacing: '-0.02em' }} className="text-slate-900 font-bold text-2xl">
-                  {formatCurrency(Number(receipt?.total || 0))}
+                  {formatCurrency(Number(receipt.total))}
                 </span>
               </div>
-              {receipt?.currency !== 'BRL' && (
-                <p className="text-slate-400 text-xs text-right">Moeda: {receipt?.currency || 'BRL'}</p>
+              {receipt.currency !== 'BRL' && (
+                <p className="text-slate-400 text-xs text-right">Moeda: {receipt.currency}</p>
               )}
             </div>
           </div>
 
-          {receipt?.notes && (
+          {receipt.notes && (
             <div className="mt-8 p-4 bg-slate-50 rounded-xl border border-slate-200">
               <p className="text-slate-500 text-xs uppercase tracking-wider font-medium mb-1">Observações</p>
               <p className="text-slate-600 text-sm">{receipt.notes}</p>
@@ -305,9 +314,9 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
             <div className="space-y-3">
               <div>
                 <p className="text-slate-400 text-xs">Data de emissão</p>
-                <p className="text-slate-700 text-sm font-medium">{formatDate(receipt?.issue_date || new Date().toISOString())}</p>
+                <p className="text-slate-700 text-sm font-medium">{formatDate(receipt.issue_date)}</p>
               </div>
-              {receipt?.due_date && (
+              {receipt.due_date && (
                 <div>
                   <p className="text-slate-400 text-xs">Data de vencimento</p>
                   <p className="text-slate-700 text-sm font-medium">{formatDate(receipt.due_date)}</p>
@@ -315,4 +324,41 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
               )}
             </div>
             <div className="flex flex-col items-center md:items-end justify-end h-full">
-              {(
+              {(profile as any)?.company_signature_url ? (
+                <div className="flex flex-col items-center">
+                  <img
+                    src={(profile as any).company_signature_url}
+                    alt="Assinatura"
+                    className="max-h-16 object-contain mb-1"
+                    crossOrigin="anonymous"
+                  />
+                  <div className="w-48 border-t border-slate-300"></div>
+                  <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mt-1">Assinatura do Emitente</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center opacity-30">
+                  <div className="h-12"></div>
+                  <div className="w-48 border-t border-slate-300"></div>
+                  <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mt-1">Assinatura do Emitente</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-slate-50 border-t border-slate-200 px-10 py-4 flex items-center justify-between">
+          <p className="text-slate-400 text-xs">
+            Recibo gerado em {new Date().toLocaleDateString('pt-BR')} · ReciboFácil
+          </p>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 bg-brand-500 rounded flex items-center justify-center">
+              <span className="text-white text-[8px] font-bold">R</span>
+            </div>
+            <span className="text-slate-400 text-xs font-medium">ReciboFácil</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
