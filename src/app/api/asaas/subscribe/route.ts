@@ -32,19 +32,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
     }
 
-    // Get user profile for name
+       // Get user profile for name and document
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, company_name')
+      .select('full_name, company_name, company_document')
       .eq('id', user.id)
       .single()
 
     const customerName = profile?.company_name || profile?.full_name || user.email?.split('@')[0] || 'Cliente'
+    const cpfCnpj = profile?.company_document?.replace(/\D/g, '') || ''
+
+    if (!cpfCnpj) {
+      return NextResponse.json({ error: 'Preencha seu CPF ou CNPJ em Configurações antes de assinar um plano.' }, { status: 400 })
+    }
 
     // Create or get Asaas customer
     const customer = await createOrGetCustomer({
       name: customerName,
       email: user.email!,
+      cpfCnpj,
       externalReference: user.id,
     })
 
