@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, CheckCircle, Upload, X, ImageIcon } from 'lucide-react'
+import { formatDocument } from '@/lib/utils'
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
@@ -154,6 +155,7 @@ export default function SettingsPage() {
             <input type="text" value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} placeholder="João Silva" className={inputClass} />
           </div>
         </div>
+
         <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
           <h2 className="text-white font-semibold mb-4">Dados da Empresa</h2>
           <div className="space-y-4">
@@ -163,23 +165,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className={labelClass}>CNPJ / CPF</label>
-              <input type="text" value={form.company_document} onChange={e => {
-                let v = e.target.value.replace(/\D/g, '')
-                if (v.length <= 11) {
-                  // CPF: 000.000.000-00
-                  v = v.replace(/(\d{3})(\d)/, '$1.$2')
-                  v = v.replace(/(\d{3})(\d)/, '$1.$2')
-                  v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-                } else {
-                  // CNPJ: 00.000.000/0001-00
-                  v = v.substring(0, 14)
-                  v = v.replace(/^(\d{2})(\d)/, '$1.$2')
-                  v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-                  v = v.replace(/\.(\d{3})(\d)/, '.$1/$2')
-                  v = v.replace(/(\d{4})(\d{1,2})$/, '$1-$2')
-                }
-                setForm(p => ({ ...p, company_document: v }))
-              }} placeholder="000.000.000-00" maxLength={18} className={inputClass} />
+              <input type="text" value={form.company_document} onChange={e => setForm(p => ({ ...p, company_document: formatDocument(e.target.value) }))} placeholder="12.345.678/0001-90" className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Endereço</label>
