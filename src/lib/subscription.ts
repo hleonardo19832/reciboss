@@ -84,6 +84,7 @@ export function getSubscriptionStatus(sub: Subscription): {
   if (sub.status === 'active') {
     const plan = PLANS[sub.plan_id as keyof typeof PLANS]
     if (plan?.receipts_limit !== null) {
+      // Reset monthly counter if needed
       const resetAt = new Date(sub.month_reset_at)
       if (now >= resetAt) {
         return { canCreate: true, isTrialing: false, isExpired: false, daysLeft: null, message: `Plano ${plan.name} ativo` }
@@ -102,7 +103,7 @@ export function getSubscriptionStatus(sub: Subscription): {
   }
 
   if (sub.status === 'expired' || sub.status === 'cancelled') {
-    return { canCreate: false, isTrialing: false, isExpired: true, daysLeft: null, message: 'Assinatura encerrada. Escolha um plano para continuar.' }
+    return { canCreate: false, isTrialing: false, isExpired: true, daysLeft: null, message: 'Assinatura vencida. Escolha um plano para continuar.' }
   }
 
   return { canCreate: false, isTrialing: false, isExpired: true, daysLeft: null, message: 'Sem plano ativo.' }
