@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { getSubscriptionStatus } from '@/lib/subscription'
 
 export default function NewClientPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [canCreate, setCanCreate] = useState(true)
+  const [blockMessage, setBlockMessage] = useState('')
   const [form, setForm] = useState({
     name: '',
     document: '',
@@ -16,6 +19,21 @@ export default function NewClientPage() {
     phone: '',
     address: '',
   })
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase.from('subscriptions').select('*, plans(*)').eq('user_id', user.id).single().then(({ data: sub }) => {
+          if (sub) {
+            const status = getSubscriptionStatus(sub as any)
+            setCanCreate(status.canCreate)
+            if (!status.canCreate) setBlockMessage(status.message)
+          }
+        })
+      }
+    })
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,7 +71,16 @@ export default function NewClientPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      {!canCreate && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center mb-6">
+          <div className="text-red-400 font-semibold mb-2">⚠️ {blockMessage}</div>
+          <Link href="/billing" className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-400 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all mt-3">
+            Ver planos disponíveis
+          </Link>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className={`${!canCreate ? 'opacity-50 pointer-events-none' : ''}`}>
         <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 space-y-4">
           <div>
             <label className={labelClass}>Nome completo / Razão social *</label>
