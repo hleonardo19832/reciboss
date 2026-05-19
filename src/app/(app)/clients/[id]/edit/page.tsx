@@ -66,20 +66,13 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
     setSaving(true)
 
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     const { error } = await supabase
       .from('clients')
-      .update({
-        ...form,
-        updated_at: new Date().toISOString()
-      })
+      .update(form)
       .eq('id', params.id)
-      .eq('user_id', user.id)
 
     if (!error) {
-      router.push(`/clients/${params.id}`)
+      router.push('/clients')
     } else {
       alert('Erro ao atualizar cliente.')
       setSaving(false)
@@ -100,12 +93,12 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   return (
     <div className="animate-fade-in max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href={`/clients/${params.id}`} className="text-slate-400 hover:text-white transition-colors">
+        <Link href="/clients" className="text-slate-400 hover:text-white transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-white">Editar Cliente</h1>
-          <p className="text-slate-400 text-sm">Atualize os dados do cliente</p>
+          <p className="text-slate-400 text-sm">Atualize os dados cadastrais do cliente</p>
         </div>
       </div>
 
@@ -177,7 +170,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
 
         <div className="flex gap-3 mt-4">
           <Link
-            href={`/clients/${params.id}`}
+            href="/clients"
             className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl font-medium text-sm transition-colors text-center border border-white/10"
           >
             Cancelar
