@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { formatDocument } from '@/lib/utils'
+import { formatDocument, formatPhone } from '@/lib/utils'
 import { getSubscriptionStatus } from '@/lib/subscription'
 
 export default function EditClientPage({ params }: { params: { id: string } }) {
@@ -150,7 +150,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
               <input
                 type="tel"
                 value={form.phone}
-                onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+                onChange={e => setForm(p => ({ ...p, phone: formatPhone(e.target.value) }))}
                 placeholder="(41) 99999-9999"
                 className={inputClass}
               />
