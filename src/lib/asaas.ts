@@ -45,7 +45,15 @@ export async function createOrGetCustomer(params: {
   // Check if customer already exists by externalReference
   const existing = await asaasRequest(`/customers?externalReference=${params.externalReference}`)
   if (existing?.data?.length > 0) {
-    return existing.data[0]
+    const customer = existing.data[0]
+    // Update customer data (ensures CPF is always up to date)
+    if (params.cpfCnpj) {
+      await asaasRequest(`/customers/${customer.id}`, 'PUT', {
+        name: params.name,
+        cpfCnpj: params.cpfCnpj,
+      })
+    }
+    return { ...customer, cpfCnpj: params.cpfCnpj }
   }
 
   // Create new customer
