@@ -4,17 +4,22 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FileText, Plus, Loader2, X } from 'lucide-react'
+import { FileText, Plus, Loader2, X, Download } from 'lucide-react'
 import { formatCurrency, formatDate, STATUS_LABELS } from '@/lib/utils'
 
 export default function ReceiptsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [receipts, setReceipts] = useState<any[]>([])
+  
+  // Filters
+  const [filterType, setFilterType] = useState<'month' | 'period'>('month')
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   })
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   
   // Quick Pay Modal states
   const [payReceipt, setPayReceipt] = useState<any | null>(null)
@@ -67,47 +72,149 @@ export default function ReceiptsPage() {
     setIsSubmittingPay(false)
   }
 
+  const exportCSV = () => {
+    if (filteredReceipts.length === 0) {
+      alert('Nenhum recibo para exportar com os filtros atuais.')
+      return
+    }
+
+    const headers = ['Número do Recibo', 'Cliente', 'Data de Emissão', 'Data de Vencimento', 'Data de Pagamento', 'Método de Pagamento', 'Status', 'Valor Subtotal', 'Desconto', 'Valor Total', 'Moeda', 'Descrição']
+    
+    const rows = filteredReceipts.map(r => {
+      return [
+        r.receipt_number,
+        `"${r.clients?.name || 'Sem cliente'}"`,
+        formatDate(r.issue_date),
+        r.due_date ? formatDate(r.due_date) : '',
+        r.payment_date ? formatDate(r.payment_date) : '',
+        r.payment_method || '',
+        STATUS_LABELS[r.status]?.label || 'Desconhecido',
+        r.subtotal.toString().replace('.', ','),
+        (r.discount || 0).toString().replace('.', ','),
+        r.total.toString().replace('.', ','),
+        r.currency || 'BRL',
+        `"${(r.description || '').replace(/"/g, '""')}"`
+      ].join(';')
+    })
+    
+    // Adicionamos o BOM (\uFEFF) para o Excel reconhecer os acentos (UTF-8) corretamente
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(';') + "\n" + rows.join('\n')
+    const encodedUri = encodeURI(csvContent)
+    
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `relatorio_recibos_${new Date().getTime()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   if (loading) return <div className="flex justify-center items-center min-h-96"><Loader2 className="w-8 h-8 text-brand-400 animate-spin" /></div>
 
   const filteredReceipts = receipts.filter(r => {
-    if (!selectedMonth) return true // Se vazio, mostra todos
-    const date = new Date(r.created_at)
-    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-    return month === selectedMonth
+    const issueDateStr = r.issue_date ? r.issue_date.split('T')[0] : r.created_at.split('T')[0]
+    
+    if (filterType === 'month') {
+      if (!selectedMonth) return true // Se vazio, mostra todos
+      // Pega o YYYY-MM da data de emissão
+      const month = issueDateStr.substring(0, 7)
+      return month === selectedMonth
+    } else {
+      // Por período
+      if (startDate && issueDateStr < startDate) return false
+      if (endDate && issueDateStr > endDate) return false
+      return true
+    }
   })
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Recibos</h1>
-          <p className="text-slate-400 text-sm mt-1">{filteredReceipts.length} recibo(s) neste mês</p>
+          <p className="text-slate-400 text-sm mt-1">{filteredReceipts.length} recibo(s) encontrado(s)</p>
         </div>
-        <div className="flex items-center gap-3">
-          <input 
-            type="month" 
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="bg-slate-900 border border-white/10 text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-brand-500"
-          />
-          <button
-            onClick={() => setSelectedMonth('')}
-            className="text-xs text-slate-400 hover:text-white"
+        
+        {/* Filtros e Ações */}
+        <div className="flex flex-wrap items-center gap-3">
+          
+          <div className="flex items-center bg-slate-900 border border-white/10 rounded-xl p-1">
+            <button 
+              onClick={() => setFilterType('month')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${filterType === 'month' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'}`}
+            >
+              Mês
+            </button>
+            <button 
+              onClick={() => setFilterType('period')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${filterType === 'period' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'}`}
+            >
+              Período
+            </button>
+          </div>
+
+          {filterType === 'month' ? (
+            <input 
+              type="month" 
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="bg-slate-900 border border-white/10 text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-brand-500"
+            />
+          ) : (
+            <div className="flex items-center gap-2 bg-slate-900 border border-white/10 rounded-xl px-2 py-1.5">
+              <input 
+                type="date" 
+                value={startDate} 
+                onChange={(e) => setStartDate(e.target.value)} 
+                className="bg-transparent text-white text-sm focus:outline-none px-2 w-[130px]"
+                title="Data inicial"
+              />
+              <span className="text-slate-500 text-xs">até</span>
+              <input 
+                type="date" 
+                value={endDate} 
+                onChange={(e) => setEndDate(e.target.value)} 
+                className="bg-transparent text-white text-sm focus:outline-none px-2 w-[130px]"
+                title="Data final"
+              />
+            </div>
+          )}
+          
+          {filterType === 'month' && (
+            <button
+              onClick={() => setSelectedMonth('')}
+              className="text-xs text-slate-400 hover:text-white"
+            >
+              Ver todos
+            </button>
+          )}
+
+          <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block"></div>
+
+          <button 
+            onClick={exportCSV}
+            title="Exportar para CSV (Excel)"
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border border-white/5"
           >
-            Ver todos
+            <Download className="w-4 h-4 text-emerald-400" />
+            <span className="hidden sm:inline">Exportar</span>
           </button>
+
           <Link href="/receipts/new" className="flex items-center gap-2 bg-brand-500 hover:bg-brand-400 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">
-            <Plus className="w-4 h-4" />Novo Recibo
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Novo Recibo</span>
           </Link>
         </div>
       </div>
+      
       <div className="bg-slate-900 border border-white/5 rounded-2xl overflow-hidden">
         {filteredReceipts.length === 0 ? (
           <div className="p-16 text-center">
             <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-white font-semibold mb-2">Nenhum recibo ainda</h3>
-            <Link href="/receipts/new" className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-400 text-white px-6 py-3 rounded-xl text-sm font-semibold mt-4 transition-all">
-              <Plus className="w-4 h-4" />Criar primeiro recibo
+            <h3 className="text-white font-semibold mb-2">Nenhum recibo encontrado</h3>
+            <p className="text-slate-400 text-sm mb-4">Tente alterar os filtros de data acima.</p>
+            <Link href="/receipts/new" className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-400 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all">
+              <Plus className="w-4 h-4" />Criar novo recibo
             </Link>
           </div>
         ) : (
