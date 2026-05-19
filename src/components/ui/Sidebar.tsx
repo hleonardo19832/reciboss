@@ -61,7 +61,7 @@ export function Sidebar() {
         setSubStatus({ message: status.message, colorClass, icon })
       }
     })
-  }, [])
+  }, [pathname])
 
   const handleLogout = async () => {
     const supabase = createClient()
