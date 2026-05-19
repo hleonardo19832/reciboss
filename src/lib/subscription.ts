@@ -108,3 +108,10 @@ export function getSubscriptionStatus(sub: Subscription): {
 
   return { canCreate: false, isTrialing: false, isExpired: true, daysLeft: null, message: 'Sem plano ativo.' }
 }
+
+export function hasWhatsAppFeature(sub: Subscription | null): boolean {
+  if (!sub) return false
+  if (sub.status === 'trialing') return true // Liberado no trial
+  if (sub.status === 'active' && sub.plan_id === 'enterprise') return true // Apenas no Empresarial
+  return false
+}
