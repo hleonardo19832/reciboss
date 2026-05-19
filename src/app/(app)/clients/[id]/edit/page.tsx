@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { formatDocument } from '@/lib/utils'
 
 export default function EditClientPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -114,7 +115,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
             <input
               type="text"
               value={form.document}
-              onChange={e => setForm(p => ({ ...p, document: e.target.value }))}
+              onChange={e => setForm(p => ({ ...p, document: formatDocument(e.target.value) }))}
               placeholder="000.000.000-00"
               className={inputClass}
             />
