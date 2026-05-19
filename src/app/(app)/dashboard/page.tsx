@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -136,4 +136,35 @@ export default function DashboardPage() {
           <div className="p-12 text-center">
             <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
             <p className="text-slate-400 text-sm mb-4">Nenhum recibo neste mês</p>
-            <Link href="/receipt
+            <Link href="/receipts/new" className="text-brand-400 text-sm hover:text-brand-300">Criar recibo →</Link>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/5">
+            {filteredReceipts.slice(0, 5).map(receipt => {
+              const status = STATUS_LABELS[receipt.status]
+              return (
+                <Link key={receipt.id} href={`/receipts/${receipt.id}`} className="flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-9 h-9 bg-slate-800 rounded-xl flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium font-mono">{receipt.receipt_number}</p>
+                      <p className="text-slate-500 text-xs">{formatDate(receipt.issue_date)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${status?.color === 'green' ? 'bg-brand-500/15 text-brand-400' : status?.color === 'yellow' ? 'bg-yellow-500/15 text-yellow-400' : 'bg-red-500/15 text-red-400'}`}>
+                      {status?.label || 'Desconhecido'}
+                    </span>
+                    <span className="text-white font-semibold text-sm">{formatCurrency(Number(receipt.total))}</span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
