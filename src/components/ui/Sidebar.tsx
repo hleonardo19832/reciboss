@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   FileText, LayoutDashboard, Users, Settings,
-  LogOut, Menu, X, ChevronRight, CreditCard, Clock, AlertTriangle
+  LogOut, Menu, X, ChevronRight, CreditCard, Clock, AlertTriangle, HelpCircle
 } from 'lucide-react'
 import { getSubscriptionStatus } from '@/lib/subscription'
 
@@ -16,6 +16,7 @@ const navItems = [
   { href: '/clients', label: 'Clientes', icon: Users },
   { href: '/settings', label: 'Configurações', icon: Settings },
   { href: '/billing', label: 'Planos', icon: CreditCard },
+  { href: '/help', label: 'Ajuda', icon: HelpCircle },
 ]
 
 export function Sidebar() {
@@ -24,6 +25,7 @@ export function Sidebar() {
   const [open, setOpen] = useState(false)
   const [userName, setUserName] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [trialInfo, setTrialInfo] = useState<{ message: string; isExpired: boolean; isTrialing: boolean } | null>(null)
   const [subStatus, setSubStatus] = useState<{ message: string; colorClass: string; icon: any } | null>(null)
 
   useEffect(() => { setOpen(false) }, [pathname])
@@ -84,11 +86,11 @@ export function Sidebar() {
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                active ? 'bg-brand-500/15 text-brand-400 border border-brand-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+               key={item.href}
+               href={item.href}
+               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                 active ? 'bg-brand-500/15 text-brand-400 border border-brand-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'
+               }`}
             >
               <item.icon className="w-4 h-4 flex-shrink-0" />
               {item.label}
