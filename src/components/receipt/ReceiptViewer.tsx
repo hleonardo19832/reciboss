@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Receipt, Profile } from '@/lib/types'
 import { formatCurrency, formatDate, STATUS_LABELS } from '@/lib/utils'
-import { Download, Printer, CheckCircle, Clock, XCircle, Building2, Mail, Loader2 } from 'lucide-react'
+import { Download, Printer, CheckCircle, Clock, XCircle, Building2, MessageCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Props {
@@ -11,7 +11,6 @@ interface Props {
   profile: Profile | null
 }
 
-// ─── Themes ───────────────────────────────────────────────
 const THEMES = {
   classic:  { label: 'Clássico',  header: 'bg-slate-900',   accent: '#22c55e' },
   ocean:    { label: 'Ocean',     header: 'bg-blue-900',    accent: '#3b82f6' },
@@ -29,8 +28,6 @@ type ThemeKey = keyof typeof THEMES
 
 export default function ReceiptViewer({ receipt, profile }: Props) {
   const [downloading, setDownloading] = useState(false)
-  const [sendingEmail, setSendingEmail] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
   const [theme, setTheme] = useState<ThemeKey>((profile as any)?.receipt_theme || 'classic')
   const status = STATUS_LABELS[receipt.status]
   const t = THEMES[theme]
@@ -61,29 +58,25 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
 
   const handlePrint = () => window.print()
 
-  const handleSendEmail = async () => {
-    const clientEmail = receipt.clients?.email
-    if (!clientEmail) {
-      alert('Este cliente não tem email cadastrado. Adicione o email do cliente para usar esta função.')
+  const handleSendWhatsApp = () => {
+    const clientPhone = receipt.clients?.phone
+    if (!clientPhone) {
+      alert('Este cliente não tem telefone cadastrado nas configurações do cliente.')
       return
     }
-    setSendingEmail(true)
-    try {
-      const res = await fetch('/api/email/receipt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ receipt_id: receipt.id }),
-      })
-      if (res.ok) {
-        setEmailSent(true)
-        setTimeout(() => setEmailSent(false), 3000)
-      } else {
-        alert('Erro ao enviar email. Verifique as configurações.')
-      }
-    } catch {
-      alert('Erro de conexão ao enviar email.')
-    }
-    setSendingEmail(false)
+    
+    const cleanPhone = clientPhone.replace(/\D/g, '')
+    const formattedPhone = cleanPhone.length === 11 || cleanPhone.length === 10 ? `55${cleanPhone}` : cleanPhone
+
+    const companyName = profile?.company_name || profile?.full_name || 'Minha Empresa'
+    const totalValue = formatCurrency(Number(receipt.total))
+    const issueDate = formatDate(receipt.issue_date)
+    const itemsList = receipt.items?.map((item: any) => `• ${item.description}: ${item.quantity}x ${formatCurrency(item.unit_price)}`).join('%0A') || ''
+
+    const message = `Olá, *${receipt.clients.name}*! Segue o seu *Recibo nº ${receipt.receipt_number}* emitido por *${companyName}*:%0A%0A💰 *Valor:* ${totalValue}%0A📅 *Data:* ${issueDate}%0A📝 *Itens:*%0A${itemsList}%0A%0AAgradecemos a preferência! 😊`
+
+    const url = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${message}`
+    window.open(url, '_blank')
   }
 
   const saveTheme = async (newTheme: ThemeKey) => {
@@ -96,7 +89,6 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
   }
 
   const logoUrl = (profile as any)?.company_logo_url
-  const hasClientEmail = !!receipt.clients?.email
 
   return (
     <div className="space-y-4">
@@ -121,17 +113,15 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Send email button */}
+          {/* Send WhatsApp button */}
           <button
-            onClick={handleSendEmail}
-            disabled={sendingEmail || !hasClientEmail}
-            title={hasClientEmail ? 'Enviar por email para o cliente' : 'Cliente sem email cadastrado'}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border border-white/10"
+            onClick={handleSendWhatsApp}
+            disabled={!receipt.clients?.phone}
+            title={receipt.clients?.phone ? 'Enviar por WhatsApp para o cliente' : 'Cliente sem telefone cadastrado'}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-emerald-600/20"
           >
-            {sendingEmail
-              ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <Mail className="w-4 h-4" />}
-            {emailSent ? 'Enviado!' : 'Enviar por email'}
+            <MessageCircle className="w-4 h-4" />
+            Enviar no WhatsApp
           </button>
 
           <button
@@ -173,7 +163,7 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
                 </div>
               )}
               <div>
-                <h2 className="text-white font-bold text-xl font-display">
+                <h2 style={{ fontFamily: 'Arial, Helvetica, sans-serif' }} className="text-white font-bold text-xl">
                   {profile?.company_name || profile?.full_name || 'Minha Empresa'}
                 </h2>
                 {profile?.company_document && (
@@ -280,7 +270,7 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
               )}
               <div className="border-t-2 border-slate-900 pt-2 flex justify-between items-center">
                 <span className="text-slate-900 font-bold text-base">TOTAL</span>
-                <span style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.02em' }} className="text-slate-900 font-bold text-2xl">
+                <span style={{ fontFamily: 'Arial, Helvetica, sans-serif', letterSpacing: '-0.02em' }} className="text-slate-900 font-bold text-2xl">
                   {formatCurrency(Number(receipt.total))}
                 </span>
               </div>
@@ -297,17 +287,39 @@ export default function ReceiptViewer({ receipt, profile }: Props) {
             </div>
           )}
 
-          <div className="mt-8 grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
-            <div>
-              <p className="text-slate-400 text-xs">Data de emissão</p>
-              <p className="text-slate-700 text-sm font-medium">{formatDate(receipt.issue_date)}</p>
-            </div>
-            {receipt.due_date && (
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100 items-end">
+            <div className="space-y-3">
               <div>
-                <p className="text-slate-400 text-xs">Data de vencimento</p>
-                <p className="text-slate-700 text-sm font-medium">{formatDate(receipt.due_date)}</p>
+                <p className="text-slate-400 text-xs">Data de emissão</p>
+                <p className="text-slate-700 text-sm font-medium">{formatDate(receipt.issue_date)}</p>
               </div>
-            )}
+              {receipt.due_date && (
+                <div>
+                  <p className="text-slate-400 text-xs">Data de vencimento</p>
+                  <p className="text-slate-700 text-sm font-medium">{formatDate(receipt.due_date)}</p>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col items-center md:items-end justify-end h-full">
+              {(profile as any)?.company_signature_url ? (
+                <div className="flex flex-col items-center">
+                  <img
+                    src={(profile as any).company_signature_url}
+                    alt="Assinatura"
+                    className="max-h-16 object-contain mb-1"
+                    crossOrigin="anonymous"
+                  />
+                  <div className="w-48 border-t border-slate-300"></div>
+                  <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mt-1">Assinatura do Emitente</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center opacity-30">
+                  <div className="h-12"></div>
+                  <div className="w-48 border-t border-slate-300"></div>
+                  <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mt-1">Assinatura do Emitente</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
