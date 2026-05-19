@@ -140,7 +140,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="divide-y divide-white/5">
-            {filteredReceipts.slice(0, 5).map(receipt => {
+            {filteredReceipts.map(receipt => {
               const status = STATUS_LABELS[receipt.status]
               return (
                 <Link key={receipt.id} href={`/receipts/${receipt.id}`} className="flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
