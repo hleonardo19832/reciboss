@@ -128,9 +128,16 @@ function BillingContent() {
         body.cpfCnpj = cardData.cpfCnpj.replace(/\D/g, '')
       }
 
+      const supabaseClient = createClient()
+      const { data: { session } } = await supabaseClient.auth.getSession()
+      const accessToken = session?.access_token
+
       const res = await fetch('/api/asaas/subscribe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken || ''}`
+        },
         body: JSON.stringify(body),
       })
 
