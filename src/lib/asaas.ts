@@ -14,20 +14,48 @@ function getApiKey() {
 }
 
 async function asaasRequest(path: string, method = 'GET', body?: object) {
-  const res = await fetch(`${getBaseUrl()}${path}`, {
+  const baseUrl = getBaseUrl()
+  const apiKey = getApiKey()
+
+  // Diagnostic logging (key length only, never log the full key)
+  console.log(`[Asaas] ${method} ${baseUrl}${path} | keyLength=${apiKey.length} | sandbox=${process.env.ASAAS_SANDBOX}`)
+
+  if (!apiKey) {
+    throw new Error('ASAAS_API_KEY não configurada no servidor. Configure a variável de ambiente.')
+  }
+
+  const res = await fetch(`${baseUrl}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'access_token': getApiKey(),
+      'access_token': apiKey,
     },
     body: body ? JSON.stringify(body) : undefined,
   })
 
-  const data = await res.json()
+  // Read raw text first to avoid "Unexpected end of JSON input"
+  const rawText = await res.text()
+  console.log(`[Asaas] Response status=${res.status} bodyLength=${rawText.length}`)
+
+  if (!rawText || rawText.trim() === '') {
+    if (!res.ok) {
+      throw new Error(`Asaas retornou erro HTTP ${res.status} sem corpo de resposta`)
+    }
+    return {}
+  }
+
+  let data: any
+  try {
+    data = JSON.parse(rawText)
+  } catch (e) {
+    console.error('[Asaas] Resposta não é JSON válido:', rawText.substring(0, 500))
+    throw new Error(`Asaas retornou resposta inválida (HTTP ${res.status}): ${rawText.substring(0, 200)}`)
+  }
 
   if (!res.ok) {
-    console.error('Asaas error:', data)
-    throw new Error(data?.errors?.[0]?.description || 'Asaas API error')
+    console.error('[Asaas] Erro da API:', data)
+    const errMsg = data?.errors?.[0]?.description || data?.message || `Erro HTTP ${res.status}`
+    throw new Error(errMsg)
   }
 
   return data
@@ -118,8 +146,6 @@ export async function createSubscription(params: {
 
   return await asaasRequest('/subscriptions', 'POST', payload)
 }
-
-// ─── Cancel/Get Subscription ────────────────────────────
 
 export async function cancelSubscription(subscriptionId: string) {
   return await asaasRequest(`/subscriptions/${subscriptionId}`, 'DELETE')
