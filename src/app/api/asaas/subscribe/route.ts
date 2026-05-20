@@ -6,7 +6,19 @@ import { PLANS } from '@/lib/subscription'
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    
+    // Get token from Authorization header as a robust fallback
+    const authHeader = request.headers.get('Authorization')
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null
+    
+    let user = null
+    if (token) {
+      const { data: { user: authUser } } = await supabase.auth.getUser(token)
+      user = authUser
+    } else {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      user = authUser
+    }
 
     if (!user) {
       const cookieStore = request.cookies.getAll()
@@ -23,6 +35,7 @@ export async function POST(request: NextRequest) {
         asaasKeyLength: asaasKey !== 'missing' ? asaasKey.length : 0,
         asaasSandbox,
         cookiesFound: cookieNames,
+        headerTokenLength: token ? token.length : 0,
       }
 
       console.error('Unauthorized request to subscribe API. Debug:', debugInfo)
