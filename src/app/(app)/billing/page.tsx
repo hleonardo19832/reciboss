@@ -50,6 +50,13 @@ function BillingContent() {
       const { data: sub } = await supabase
         .from('subscriptions').select('*, plans(*)').eq('user_id', user.id).single()
       setSubscription(sub)
+      
+      const { data: profile } = await supabase
+        .from('profiles').select('company_document').eq('id', user.id).single()
+      if (profile?.company_document) {
+        setCardData(prev => ({ ...prev, cpfCnpj: profile.company_document }))
+      }
+      
       setLoading(false)
     })
   }, [router])
@@ -117,6 +124,8 @@ function BillingContent() {
           addressNumber: cardData.addressNumber,
           phone: cardData.phone.replace(/\D/g, ''),
         }
+      } else {
+        body.cpfCnpj = cardData.cpfCnpj.replace(/\D/g, '')
       }
 
       const res = await fetch('/api/asaas/subscribe', {
@@ -514,19 +523,35 @@ function BillingContent() {
               </div>
             )}
 
-            {billingType === 'PIX' && (
-              <div className="bg-slate-800 rounded-xl p-4 mb-5 text-center">
-                <QrCode className="w-8 h-8 text-brand-400 mx-auto mb-2" />
-                <p className="text-slate-300 text-sm">O QR Code PIX será gerado após confirmar</p>
-                <p className="text-slate-500 text-xs mt-1">Confirmação em segundos</p>
-              </div>
-            )}
+            {(billingType === 'PIX' || billingType === 'BOLETO') && (
+              <div className="space-y-4 mb-5 animate-fade-in">
+                <div className="bg-slate-800/80 rounded-xl p-4 text-center border border-white/5">
+                  {billingType === 'PIX' ? (
+                    <>
+                      <QrCode className="w-8 h-8 text-brand-400 mx-auto mb-2" />
+                      <p className="text-slate-300 text-sm font-medium">O QR Code PIX será gerado após confirmar</p>
+                      <p className="text-slate-500 text-xs mt-1">Aprovação imediata e ativação automática</p>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                      <p className="text-slate-300 text-sm font-medium">O boleto será gerado após confirmar</p>
+                      <p className="text-slate-500 text-xs mt-1">Ativação em até 3 dias úteis após o pagamento</p>
+                    </>
+                  )}
+                </div>
 
-            {billingType === 'BOLETO' && (
-              <div className="bg-slate-800 rounded-xl p-4 mb-5 text-center">
-                <FileText className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                <p className="text-slate-300 text-sm">O boleto será gerado após confirmar</p>
-                <p className="text-slate-500 text-xs mt-1">Prazo: até 3 dias úteis</p>
+                <div className="space-y-1">
+                  <label className="block text-slate-400 text-xs font-semibold">CPF ou CNPJ do Titular</label>
+                  <input
+                    value={cardData.cpfCnpj}
+                    onChange={e => setCardData(p => ({ ...p, cpfCnpj: e.target.value }))}
+                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                    required
+                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-3 text-white text-sm focus:outline-none focus:border-brand-500 font-mono transition-colors"
+                  />
+                  <p className="text-slate-500 text-[10px]">Necessário para registrar a cobrança nos termos do Banco Central.</p>
+                </div>
               </div>
             )}
 
