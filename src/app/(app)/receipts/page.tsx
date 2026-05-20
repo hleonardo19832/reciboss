@@ -78,6 +78,13 @@ export default function ReceiptsPage() {
       return
     }
 
+    const formatToBRL = (val: number) => {
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(val)
+    }
+
     const headers = ['Número do Recibo', 'Cliente', 'Data de Emissão', 'Data de Vencimento', 'Data de Pagamento', 'Método de Pagamento', 'Status', 'Valor Subtotal', 'Desconto', 'Valor Total', 'Moeda', 'Descrição']
     
     const rows = filteredReceipts.map(r => {
@@ -89,20 +96,21 @@ export default function ReceiptsPage() {
         r.payment_date ? formatDate(r.payment_date) : '',
         r.payment_method || '',
         STATUS_LABELS[r.status]?.label || 'Desconhecido',
-        r.subtotal.toString().replace('.', ','),
-        (r.discount || 0).toString().replace('.', ','),
-        r.total.toString().replace('.', ','),
+        formatToBRL(r.subtotal),
+        formatToBRL(r.discount || 0),
+        formatToBRL(r.total),
         r.currency || 'BRL',
         `"${(r.description || '').replace(/"/g, '""')}"`
       ].join(';')
     })
     
     // Adicionamos o BOM (\uFEFF) para o Excel reconhecer os acentos (UTF-8) corretamente
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(';') + "\n" + rows.join('\n')
-    const encodedUri = encodeURI(csvContent)
+    const csvContent = "\uFEFF" + headers.join(';') + "\n" + rows.join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
     
     const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
+    link.setAttribute('href', url)
     link.setAttribute('download', `relatorio_recibos_${new Date().getTime()}.csv`)
     document.body.appendChild(link)
     link.click()
