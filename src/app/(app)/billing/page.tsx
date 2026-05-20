@@ -137,6 +137,9 @@ function BillingContent() {
       const data = await res.json()
 
       if (!res.ok) {
+        if (data.debug) {
+          console.error('Server Debug Info:', data.debug)
+        }
         throw new Error(data.error || 'Erro ao se conectar ao gateway')
       }
 
