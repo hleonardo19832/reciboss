@@ -1,63 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdmin } from '@supabase/supabase-js'
 import { createOrGetCustomer, createSubscription } from '@/lib/asaas'
 import { PLANS } from '@/lib/subscription'
-
-const supabaseAdmin = createAdmin(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient()
-
-    // Try cookie-based auth first
-    let { data: { user } } = await supabase.auth.getUser()
-
-    // Fallback: read token from Authorization header
-    if (!user) {
-      const authHeader = request.headers.get('Authorization')
-      if (authHeader?.startsWith('Bearer ')) {
-        const token = authHeader.substring(7)
-        const { data } = await supabase.auth.getUser(token)
-        user = data.user
-      }
-    }
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     const body = await request.json()
-    const { plan_id, billing_type, credit_card, credit_card_holder_info } = body
+    const { plan_id, billing_type, credit_card, credit_card_holder_info, cpfCnpj } = body
 
     const plan = PLANS[plan_id as keyof typeof PLANS]
     if (!plan) {
       return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
     }
 
-    // Use admin client for DB queries (safe because user is already verified above)
-    const { data: profile } = await supabaseAdmin
+    // Get user profile for name and document
+    const { data: profile } = await supabase
       .from('profiles')
       .select('full_name, company_name, company_document')
       .eq('id', user.id)
       .single()
 
     const customerName = profile?.company_name || profile?.full_name || user.email?.split('@')[0] || 'Cliente'
-    const cpfCnpj = profile?.company_document?.replace(/\D/g, '') || ''
+    const finalCpfCnpj = cpfCnpj || credit_card_holder_info?.cpfCnpj || profile?.company_document || ''
+    const cleanCpfCnpj = finalCpfCnpj.replace(/\D/g, '')
 
-    if (!cpfCnpj) {
-      return NextResponse.json({ error: 'Preencha seu CPF ou CNPJ em Configurações antes de assinar um plano.' }, { status: 400 })
+    if (!cleanCpfCnpj) {
+      return NextResponse.json({ error: 'CPF ou CNPJ é obrigatório para faturamento.' }, { status: 400 })
+    }
+
+    // Save/update company_document to profile if it changed or was empty
+    if (cleanCpfCnpj !== profile?.company_document) {
+      await supabase
+        .from('profiles')
+        .update({ company_document: cleanCpfCnpj })
+        .eq('id', user.id)
     }
 
     // Create or get Asaas customer
     const customer = await createOrGetCustomer({
       name: customerName,
       email: user.email!,
-      cpfCnpj,
       externalReference: user.id,
+      cpfCnpj: cleanCpfCnpj,
     })
 
     // Create recurring subscription
@@ -72,8 +63,8 @@ export async function POST(request: NextRequest) {
       creditCardHolderInfo: credit_card_holder_info,
     })
 
-    // Save subscription ID to DB using admin client
-    await supabaseAdmin
+    // Save subscription ID to DB (will be fully activated by webhook)
+    await supabase
       .from('subscriptions')
       .upsert({
         user_id: user.id,
@@ -87,6 +78,7 @@ export async function POST(request: NextRequest) {
     let paymentInfo = null
     if (billing_type === 'PIX' || billing_type === 'BOLETO') {
       const { getSubscriptionPaymentLink } = await import('@/lib/asaas')
+      // Retry loop to give Asaas time to generate the payment
       for (let i = 0; i < 6; i++) {
         await new Promise(r => setTimeout(r, 1000))
         paymentInfo = await getSubscriptionPaymentLink(subscription.id)
