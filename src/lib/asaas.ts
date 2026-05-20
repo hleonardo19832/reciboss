@@ -10,8 +10,7 @@ function getBaseUrl() {
 }
 
 function getApiKey() {
-  const key = process.env.ASAAS_API_KEY || ''
-  return key.startsWith('$') ? key : `$${key}`
+  return process.env.ASAAS_API_KEY || ''
 }
 
 async function asaasRequest(path: string, method = 'GET', body?: object) {
@@ -39,31 +38,37 @@ async function asaasRequest(path: string, method = 'GET', body?: object) {
 export async function createOrGetCustomer(params: {
   name: string
   email: string
-  cpfCnpj: string
   externalReference: string // user_id
+  cpfCnpj?: string
 }) {
   // Check if customer already exists by externalReference
   const existing = await asaasRequest(`/customers?externalReference=${params.externalReference}`)
   if (existing?.data?.length > 0) {
     const customer = existing.data[0]
-    // Update customer data (ensures CPF is always up to date)
-    if (params.cpfCnpj) {
-      await asaasRequest(`/customers/${customer.id}`, 'PUT', {
-        name: params.name,
-        cpfCnpj: params.cpfCnpj,
-      })
+    // If the existing customer doesn't have a CPF/CNPJ but we have one now, update it
+    if (!customer.cpfCnpj && params.cpfCnpj) {
+      try {
+        return await asaasRequest(`/customers/${customer.id}`, 'PUT', { cpfCnpj: params.cpfCnpj })
+      } catch (err) {
+        console.warn('Failed to update existing customer CPF/CNPJ:', err)
+      }
     }
-    return { ...customer, cpfCnpj: params.cpfCnpj }
+    return customer
   }
 
   // Create new customer
-  return await asaasRequest('/customers', 'POST', {
+  const payload: Record<string, any> = {
     name: params.name,
     email: params.email,
-    cpfCnpj: params.cpfCnpj,
     externalReference: params.externalReference,
     notificationDisabled: false,
-  })
+  }
+
+  if (params.cpfCnpj) {
+    payload.cpfCnpj = params.cpfCnpj
+  }
+
+  return await asaasRequest('/customers', 'POST', payload)
 }
 
 // ─── Subscription ────────────────────────────────────────
@@ -113,6 +118,8 @@ export async function createSubscription(params: {
 
   return await asaasRequest('/subscriptions', 'POST', payload)
 }
+
+// ─── Cancel/Get Subscription ────────────────────────────
 
 export async function cancelSubscription(subscriptionId: string) {
   return await asaasRequest(`/subscriptions/${subscriptionId}`, 'DELETE')
