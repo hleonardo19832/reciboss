@@ -157,40 +157,8 @@ function BillingContent() {
         router.push('/billing/success?plan=' + selectedPlan)
       }
     } catch (err: any) {
-      console.warn('Real checkout failed (possible placeholder credentials), running in local simulation mode:', err.message)
-      
-      const supabase = createClient()
-      const now = new Date()
-
-      // Set state to pending in DB first
-      await supabase
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          plan_id: selectedPlan,
-          status: 'pending',
-          updated_at: now.toISOString()
-        }, { onConflict: 'user_id' })
-
-      const { data: sub } = await supabase
-        .from('subscriptions').select('*, plans(*)').eq('user_id', user.id).single()
-      setSubscription(sub)
-
-      if (billingType === 'CREDIT_CARD') {
-        // Credit card simulation immediately auto-activates
-        await confirmSimulatedPayment(selectedPlan)
-      } else {
-        // PIX / Boleto opens simulated modal with manual confirmation button
-        setPaymentInfo({
-          type: billingType.toLowerCase(),
-          payload: `00020101021226830014br.gov.bcb.pix2561api.asaas.com/v2/cobv/recibos-saas-mocked-${selectedPlan}`,
-          encodedImage: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'),
-          bankSlipUrl: 'https://www.asaas.com/d/pdf/mocked-boleto',
-          simulated: true,
-          simulatedPlanId: selectedPlan
-        })
-      }
+      console.error('Checkout error:', err.message)
+      setCheckoutError(err.message || 'Erro ao processar pagamento. Tente novamente.')
     }
     setCheckoutLoading(false)
   }
@@ -593,12 +561,7 @@ function BillingContent() {
               <p className="text-slate-400 text-xs mb-1">Código PIX Copia e Cola</p>
               <p className="text-white text-xs font-mono break-all line-clamp-3">{paymentInfo.payload}</p>
             </div>
-            {paymentInfo.simulated && (
-              <button onClick={() => confirmSimulatedPayment(paymentInfo.simulatedPlanId)}
-                className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-950 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 mb-3">
-                ⚡ Simular Confirmação de Pagamento
-              </button>
-            )}
+
             <button onClick={copyPix} className="w-full bg-brand-500/20 hover:bg-brand-500/30 text-brand-400 border border-brand-500/30 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 mb-3">
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               {copied ? 'Copiado!' : 'Copiar código PIX'}
@@ -619,12 +582,7 @@ function BillingContent() {
             <h2 className="text-white font-bold text-lg mb-1">Boleto gerado!</h2>
             <p className="text-slate-400 text-sm mb-2">Vencimento: {paymentInfo.dueDate}</p>
             <p className="text-slate-500 text-xs mb-5">Após o pagamento, aguarde até 3 dias úteis para ativação.</p>
-            {paymentInfo.simulated && (
-              <button onClick={() => confirmSimulatedPayment(paymentInfo.simulatedPlanId)}
-                className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-950 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 mb-3">
-                ⚡ Simular Confirmação de Pagamento
-              </button>
-            )}
+
             <a href={paymentInfo.bankSlipUrl} target="_blank" rel="noopener noreferrer"
               className="w-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 mb-3">
               <FileText className="w-4 h-4" />Abrir boleto
