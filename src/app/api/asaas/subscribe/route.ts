@@ -9,7 +9,28 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+      const cookieStore = request.cookies.getAll()
+      const cookieNames = cookieStore.map(c => c.name)
+      
+      const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'missing'
+      const sbAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'missing'
+      const asaasKey = process.env.ASAAS_API_KEY || 'missing'
+      const asaasSandbox = process.env.ASAAS_SANDBOX || 'missing'
+
+      const debugInfo = {
+        supabaseUrl: sbUrl !== 'missing' ? `${sbUrl.substring(0, 20)}...` : 'missing',
+        supabaseAnonKeyLength: sbAnon !== 'missing' ? sbAnon.length : 0,
+        asaasKeyLength: asaasKey !== 'missing' ? asaasKey.length : 0,
+        asaasSandbox,
+        cookiesFound: cookieNames,
+      }
+
+      console.error('Unauthorized request to subscribe API. Debug:', debugInfo)
+
+      return NextResponse.json({ 
+        error: 'Não autorizado', 
+        debug: debugInfo 
+      }, { status: 401 })
     }
 
     const body = await request.json()
