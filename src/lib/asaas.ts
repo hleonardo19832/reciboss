@@ -10,7 +10,13 @@ function getBaseUrl() {
 }
 
 function getApiKey() {
-  return process.env.ASAAS_API_KEY || ''
+  const key = process.env.ASAAS_API_KEY || ''
+  // Vercel dashboard strips the leading '$' from env var values due to variable expansion.
+  // Asaas keys always start with '$', so we add it back if missing.
+  if (key && !key.startsWith('$')) {
+    return `$${key}`
+  }
+  return key
 }
 
 async function asaasRequest(path: string, method = 'GET', body?: object) {
