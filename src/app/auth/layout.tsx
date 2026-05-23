@@ -22,17 +22,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <FileText className="w-10 h-10 text-white" />
           </div>
           <h1 className="font-display text-4xl font-bold text-white mb-4">
-            ReciboFácil
+            FinHub
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
-            Gerencie seus recibos de forma profissional e organizada.
+            Gerencie suas finanças de forma profissional e organizada.
           </p>
           <div className="mt-12 space-y-3">
             {[
+              '✓ Contas a receber completo',
               '✓ Recibos profissionais em PDF',
               '✓ Gestão completa de clientes',
               '✓ Dados seguros e privados',
-              '✓ 100% gratuito',
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-2 text-slate-400 text-sm justify-center">
                 {item}
@@ -50,7 +50,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
                 <FileText className="w-4 h-4 text-white" />
               </div>
-              <span className="font-display font-bold text-xl text-white">ReciboFácil</span>
+              <span className="font-display font-bold text-xl text-white">FinHub</span>
             </Link>
           </div>
           {children}

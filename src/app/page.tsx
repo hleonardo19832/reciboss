@@ -40,7 +40,7 @@ export default function HomePage() {
             <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
               <FileText className="w-4 h-4 text-white" />
             </div>
-            <span className="font-display font-bold text-xl text-white">ReciboFácil</span>
+            <span className="font-display font-bold text-xl text-white">FinHub</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8">
@@ -80,17 +80,17 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-4 py-2 rounded-full mb-8 animate-fade-in">
             <Star className="w-3 h-3 fill-current" />
-            100% Gratuito · Sem cartão de crédito
+            14 dias grátis · Sem cartão de crédito
           </div>
 
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.05] mb-6 animate-fade-up">
-            Recibos profissionais{' '}
-            <span className="text-brand-400">em segundos</span>
+            Controle financeiro{' '}
+            <span className="text-brand-400">inteligente</span>
           </h1>
 
           <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up animate-delay-100">
-            Crie, gerencie e envie recibos profissionais com facilidade.
-            Seus clientes, seus dados, total controle.
+            Contas a receber, recibos profissionais e gestão de clientes.
+            Tudo em um só lugar, para autônomos e pequenas empresas.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up animate-delay-200">
@@ -168,10 +168,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
-              Tudo que você precisa
+              Gestão financeira completa
             </h2>
             <p className="text-slate-400 text-lg max-w-xl mx-auto">
-              Ferramentas poderosas para gerenciar seus recibos de forma simples e profissional.
+              Do controle de contas a receber ao recibo profissional em PDF — tudo integrado.
             </p>
           </div>
 
@@ -411,10 +411,10 @@ export default function HomePage() {
             <div className="w-7 h-7 bg-brand-500 rounded-lg flex items-center justify-center">
               <FileText className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-display font-bold text-white">ReciboFácil</span>
+            <span className="font-display font-bold text-white">FinHub</span>
           </div>
           <p className="text-slate-500 text-sm">
-            © {new Date().getFullYear()} ReciboFácil. Feito com ♥ no Brasil.
+            © {new Date().getFullYear()} FinHub. Feito com ♥ no Brasil.
           </p>
         </div>
       </footer>

@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    const senderName = profile?.company_name || profile?.full_name || 'ReciboFácil'
-    const senderEmail = process.env.RESEND_FROM_EMAIL || 'noreply@recibofacil.com.br'
+    const senderName = profile?.company_name || profile?.full_name || 'FinHub'
+    const senderEmail = process.env.RESEND_FROM_EMAIL || 'noreply@finhub.com.br'
 
     // Build email HTML
     const statusColor = receipt.status === 'paid' ? '#16a34a' : receipt.status === 'pending' ? '#d97706' : '#dc2626'
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
 
     <!-- Footer -->
     <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center;">
-      <p style="margin: 0; font-size: 12px; color: #94a3b8;">Gerado em ${new Date().toLocaleDateString('pt-BR')} · ReciboFácil</p>
+      <p style="margin: 0; font-size: 12px; color: #94a3b8;">Gerado em ${new Date().toLocaleDateString('pt-BR')} · FinHub</p>
     </div>
   </div>
 </body>

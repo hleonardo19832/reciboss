@@ -1,4 +1,4 @@
-# 🧾 ReciboFácil — SaaS de Gerador de Recibos
+# 🧾 FinHub — SaaS de Gerador de Recibos
 
 Aplicação completa para geração de recibos profissionais com autenticação multi-usuário, cada cliente acessa somente seus próprios dados.
 
@@ -40,11 +40,11 @@ Aplicação completa para geração de recibos profissionais com autenticação 
 # Na raiz do projeto
 git init
 git add .
-git commit -m "Initial commit - ReciboFácil SaaS"
+git commit -m "Initial commit - FinHub SaaS"
 git branch -M main
 
 # Crie um repositório no github.com e siga as instruções
-git remote add origin https://github.com/SEU_USUARIO/recibos-saas.git
+git remote add origin https://github.com/SEU_USUARIO/finhub.git
 git push -u origin main
 ```
 
@@ -52,7 +52,7 @@ git push -u origin main
 
 1. Acesse [vercel.com](https://vercel.com) e faça login com GitHub
 2. Clique em **"New Project"**
-3. Selecione o repositório `recibos-saas`
+3. Selecione o repositório `finhub`
 4. Em **Environment Variables**, adicione:
    ```
    NEXT_PUBLIC_SUPABASE_URL = sua_url_do_supabase

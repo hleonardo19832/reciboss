@@ -78,7 +78,7 @@ export function Sidebar() {
         <div className="w-8 h-8 bg-brand-500 rounded-xl flex items-center justify-center flex-shrink-0">
           <FileText className="w-4 h-4 text-white" />
         </div>
-        <span className="font-display font-bold text-white text-lg">ReciboFácil</span>
+        <span className="font-display font-bold text-white text-lg">FinHub</span>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">

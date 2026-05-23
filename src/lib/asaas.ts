@@ -141,7 +141,7 @@ export async function createSubscription(params: {
     value: params.value,
     nextDueDate: nextDue,
     cycle: 'MONTHLY',
-    description: `ReciboFácil — Plano ${params.planName}`,
+    description: `FinHub — Plano ${params.planName}`,
     externalReference: params.externalReference,
   }
 

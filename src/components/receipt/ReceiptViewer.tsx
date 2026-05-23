@@ -349,13 +349,13 @@ export default function ReceiptViewer({ receipt, profile, subscription }: Props)
         {/* Footer */}
         <div className="bg-slate-50 border-t border-slate-200 px-10 py-4 flex items-center justify-between">
           <p className="text-slate-400 text-xs">
-            Recibo gerado em {new Date().toLocaleDateString('pt-BR')} · ReciboFácil
+            Recibo gerado em {new Date().toLocaleDateString('pt-BR')} · FinHub
           </p>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-brand-500 rounded flex items-center justify-center">
               <span className="text-white text-[8px] font-bold">R</span>
             </div>
-            <span className="text-slate-400 text-xs font-medium">ReciboFácil</span>
+            <span className="text-slate-400 text-xs font-medium">FinHub</span>
           </div>
         </div>
       </div>

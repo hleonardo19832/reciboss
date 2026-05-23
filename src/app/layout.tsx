@@ -18,9 +18,9 @@ const jetbrains = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'ReciboFácil — Gerador de Recibos Profissionais',
-  description: 'Crie recibos profissionais em segundos. Gerencie seus clientes e acompanhe seus pagamentos com facilidade.',
-  keywords: 'recibo, gerador de recibo, nota de pagamento, recibo online, gestão financeira',
+  title: 'FinHub — Contas a Receber e Gestão Financeira',
+  description: 'Controle suas finanças com precisão. Contas a receber, recibos e gestão de clientes em um só lugar.',
+  keywords: 'recibo, contas a receber, gestão financeira, recibos, controle financeiro',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
