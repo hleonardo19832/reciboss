@@ -6,12 +6,13 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   FileText, LayoutDashboard, Users, Settings,
-  LogOut, Menu, X, ChevronRight, CreditCard, Clock, AlertTriangle, HelpCircle
+  LogOut, Menu, X, ChevronRight, CreditCard, Clock, AlertTriangle, TrendingUp, HelpCircle
 } from 'lucide-react'
 import { getSubscriptionStatus } from '@/lib/subscription'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/receivables', label: 'Contas a Receber', icon: TrendingUp },
   { href: '/receipts', label: 'Recibos', icon: FileText },
   { href: '/clients', label: 'Clientes', icon: Users },
   { href: '/settings', label: 'Configurações', icon: Settings },

@@ -71,3 +71,12 @@ export function formatPhone(value: string): string {
       .slice(0, 15)
   }
 }
+
+export const RECEIVABLE_CATEGORIES = [
+  { value: 'servico',     label: 'Serviço' },
+  { value: 'produto',     label: 'Produto' },
+  { value: 'aluguel',     label: 'Aluguel' },
+  { value: 'consultoria', label: 'Consultoria' },
+  { value: 'mensalidade', label: 'Mensalidade' },
+  { value: 'outro',       label: 'Outro' },
+]
